@@ -1,0 +1,407 @@
+---
+title: "Assignment 1 — Loading and Transforming English Premier League Match Data"
+author: "Aniss Sahraoui"
+date: "`r format(Sys.Date(), '%B %d, %Y')`"
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    number_sections: true
+    theme: flatly
+    df_print: paged
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, message = FALSE, warning = FALSE,
+                      fig.align = "center", fig.width = 8, fig.height = 4.5)
+```
+
+```{r libraries}
+library(tidyverse)   # readr, dplyr, tidyr, ggplot2, purrr, stringr
+library(knitr)       # kable() for tidy tables
+```
+
+# Overview
+
+When COVID-19 forced European football to restart in empty stadiums, researchers at
+the University of Leeds and Northumbria University treated it as a natural experiment on
+**home advantage**. Analysing 4,844 matches across 11 countries, McCarrick et al. found that
+home teams' advantage roughly halved without fans — from **0.39 to 0.22 extra points per game**
+and from **0.29 to 0.15 extra goals per game** — while also winning 0.7 fewer corners,
+taking 1.3 fewer shots, and conceding *more* fouls to the referee's whistle.
+
+The article I am working from is the University of Leeds summary,
+["How empty stadiums affected football during pandemic"](https://www.leeds.ac.uk/news-science/news/article/4894/how-empty-stadiums-affected-football-during-pandemic),
+which reports on the peer-reviewed paper
+["Home advantage during the COVID-19 pandemic: Analyses of European football leagues"](https://www.sciencedirect.com/science/article/pii/S146902922100131X)
+(*Psychology of Sport and Exercise*, 2021).
+
+My goal in this assignment is **not** to replicate their statistics. It is to take the raw,
+heavily abbreviated match data those kinds of studies rely on and turn it into a clean,
+well-named data frame that could support that analysis — and several later ones.
+
+# About the Data
+
+## Source
+
+The data is English Premier League match-by-match results originally published by
+[football-data.co.uk](https://www.football-data.co.uk/englandm.php), the same source behind the
+[English Premier League (EPL) Match Data 2000-2025](https://www.kaggle.com/datasets/marcohuiii/english-premier-league-epl-match-data-2000-2025)
+dataset on Kaggle. I use **25 seasons, 2000–01 through 2024–25**, which is 9,500 matches.
+
+Each season lives in its own CSV file, all sharing an identical 22-column schema. The files are
+read directly from a public GitHub repository, so this document is reproducible on any machine —
+nothing is read from my local disk.
+
+## The raw column names
+
+The raw files use terse abbreviations. This table is the data dictionary I will use to rename them:
+
+```{r data-dictionary}
+data_dictionary <- tribble(
+  ~raw_name, ~meaning,                                    ~keep,
+  "Date",    "Match date",                                "yes",
+  "HomeTeam","Home team name",                            "yes",
+  "AwayTeam","Away team name",                            "yes",
+  "FTHG",    "Full Time Home Goals",                      "yes",
+  "FTAG",    "Full Time Away Goals",                      "yes",
+  "FTR",     "Full Time Result: H / D / A  (TARGET)",     "yes",
+  "HTHG",    "Half Time Home Goals",                      "no",
+  "HTAG",    "Half Time Away Goals",                      "no",
+  "HTR",     "Half Time Result",                          "no",
+  "Referee", "Match referee",                             "yes",
+  "HS",      "Home Shots",                                "yes",
+  "AS",      "Away Shots",                                "yes",
+  "HST",     "Home Shots on Target",                      "yes",
+  "AST",     "Away Shots on Target",                      "yes",
+  "HF",      "Home Fouls committed",                      "yes",
+  "AF",      "Away Fouls committed",                      "yes",
+  "HC",      "Home Corners",                              "yes",
+  "AC",      "Away Corners",                              "yes",
+  "HY",      "Home Yellow cards",                         "yes",
+  "AY",      "Away Yellow cards",                         "yes",
+  "HR",      "Home Red cards",                            "yes",
+  "AR",      "Away Red cards",                            "yes"
+)
+
+kable(data_dictionary, caption = "Raw columns, their meaning, and whether I keep them")
+```
+
+`FTR` is the obvious **target (dependent) variable**: it is what a match-outcome model would
+predict, and its values are the single-letter codes `H`, `D`, and `A` that the assignment asks
+us to translate into something a human can read.
+
+# Step 1 — Load the raw data from the web
+
+Each season is a separate file, so I build the 25 URLs programmatically and read them into one
+data frame with `purrr::map_dfr()`. The `season` column is created from the file code as the
+files are stacked, so I never lose track of which season a row came from.
+
+```{r load-data}
+# Change this to your own GitHub repo once you have uploaded data/raw/ there.
+base_url <- "https://raw.githubusercontent.com/datasets/football-datasets/master/datasets/premier-league"
+
+season_codes <- c("0001","0102","0203","0304","0405","0506","0607","0708","0809",
+                  "0910","1011","1112","1213","1314","1415","1516","1617","1718",
+                  "1819","1920","2021","2122","2223","2324","2425")
+
+# Turn "0001" into the readable label "2000-01"
+season_label <- function(code) {
+  start <- as.integer(substr(code, 1, 2))
+  start_year <- if_else(start >= 90, 1900L + start, 2000L + start)
+  paste0(start_year, "-", substr(code, 3, 4))
+}
+
+epl_raw <- map_dfr(
+  season_codes,
+  function(code) {
+    read_csv(file.path(base_url, paste0("season-", code, ".csv")),
+             show_col_types = FALSE) |>
+      mutate(season = season_label(code), .before = 1)
+  }
+)
+
+dim(epl_raw)
+```
+
+# Step 2 — Inspect what arrived
+
+Before changing anything, I look at the structure and a few rows. This is where you catch a
+column that was read as text when it should be a number, or a date that did not parse.
+
+```{r inspect}
+glimpse(epl_raw)
+```
+
+```{r inspect-head}
+head(epl_raw, 5)
+```
+
+The `Date` column came through as a real `Date` type and the count columns as numbers, so no
+type repair is needed.
+
+# Step 3 — Select a subset of columns
+
+I drop the three half-time columns (`HTHG`, `HTAG`, `HTR`). They are legitimate data, but a
+match's half-time state is a *consequence* of the same game rather than information you would
+have before kickoff, so it is not useful for the kind of pre-match prediction I want to do later.
+Everything else is kept.
+
+```{r select-columns}
+epl_subset <- epl_raw |>
+  select(
+    season, Date, HomeTeam, AwayTeam,
+    FTHG, FTAG, FTR,          # goals and the target
+    HS, AS, HST, AST,         # shots
+    HC, AC,                   # corners
+    HF, AF,                   # fouls
+    HY, AY, HR, AR,           # cards
+    Referee
+  )
+
+ncol(epl_raw)      # before
+ncol(epl_subset)   # after
+```
+
+# Step 4 — Give the columns meaningful names
+
+`rename()` takes `new_name = old_name`. I use `snake_case` throughout, spell out `home` and
+`away` rather than `H` and `A`, and say `shots_on_target` instead of `HST`. The names are longer,
+but every one of them is self-explanatory six months from now.
+
+```{r rename-columns}
+epl_named <- epl_subset |>
+  rename(
+    match_date            = Date,
+    home_team             = HomeTeam,
+    away_team             = AwayTeam,
+    home_goals            = FTHG,
+    away_goals            = FTAG,
+    full_time_result      = FTR,
+    home_shots            = HS,
+    away_shots            = AS,
+    home_shots_on_target  = HST,
+    away_shots_on_target  = AST,
+    home_corners          = HC,
+    away_corners          = AC,
+    home_fouls            = HF,
+    away_fouls            = AF,
+    home_yellow_cards     = HY,
+    away_yellow_cards     = AY,
+    home_red_cards        = HR,
+    away_red_cards        = AR,
+    referee               = Referee
+  )
+
+names(epl_named)
+```
+
+# Step 5 — Replace the non-intuitive abbreviations
+
+This is the step the assignment calls out explicitly. The target variable `full_time_result`
+stores `H`, `D`, and `A`. On its own, `A` is ambiguous — it could plausibly mean "Away win"
+or "Abandoned". I recode it to full text and make it an ordered factor so that it always sorts
+Home Win → Draw → Away Win in tables and plots.
+
+```{r recode-target}
+epl_decoded <- epl_named |>
+  mutate(
+    full_time_result = recode(full_time_result,
+                              "H" = "Home Win",
+                              "D" = "Draw",
+                              "A" = "Away Win"),
+    full_time_result = factor(full_time_result,
+                              levels = c("Home Win", "Draw", "Away Win"))
+  )
+
+count(epl_decoded, full_time_result)
+```
+
+# Step 6 — Add derived variables
+
+A few columns that are not in the raw file but that I will want repeatedly. `crowd_status` is
+the one that connects this data frame back to the article: the Premier League played behind
+closed doors from the 17 June 2020 restart until the end of the 2020–21 season.
+
+```{r derive-columns}
+# Premier League behind-closed-doors window.
+# Caveat: a handful of December 2020 fixtures and the final matchday (23 May 2021)
+# admitted limited crowds, so this flag is a good approximation, not a perfect one.
+bcd_start <- as.Date("2020-06-17")
+bcd_end   <- as.Date("2021-05-19")
+
+epl_clean <- epl_decoded |>
+  mutate(
+    crowd_status = if_else(match_date >= bcd_start & match_date <= bcd_end,
+                           "Behind closed doors", "Fans present"),
+    crowd_status = factor(crowd_status, levels = c("Fans present", "Behind closed doors")),
+    goal_difference = home_goals - away_goals,          # positive = home team ahead
+    total_goals     = home_goals + away_goals,
+    home_points     = case_when(                        # league points won by the home team
+      full_time_result == "Home Win" ~ 3L,
+      full_time_result == "Draw"     ~ 1L,
+      full_time_result == "Away Win" ~ 0L
+    ),
+    away_points     = case_when(
+      full_time_result == "Home Win" ~ 0L,
+      full_time_result == "Draw"     ~ 1L,
+      full_time_result == "Away Win" ~ 3L
+    )
+  ) |>
+  relocate(crowd_status, .after = match_date)
+
+count(epl_clean, crowd_status)
+```
+
+# Step 7 — Check the finished data frame
+
+A transformation is not done until you have looked for missing and impossible values.
+
+```{r quality-check}
+# How many missing values are in each column?
+missing_by_column <- epl_clean |>
+  summarise(across(everything(), ~ sum(is.na(.)))) |>
+  pivot_longer(everything(), names_to = "column", values_to = "n_missing")
+
+cat("Total missing values in the data frame:", sum(missing_by_column$n_missing), "\n")
+
+missing_by_column |>
+  filter(n_missing > 0) |>
+  kable(caption = "Columns containing missing values (empty table means none)")
+```
+
+```{r quality-check-2}
+# Sanity checks: goals should never be negative, and the recoded result
+# should always agree with the goals actually scored.
+epl_clean |>
+  summarise(
+    n_matches          = n(),
+    n_seasons          = n_distinct(season),
+    n_teams            = n_distinct(home_team),
+    negative_goals     = sum(home_goals < 0 | away_goals < 0),
+    result_mismatches  = sum(
+      (goal_difference > 0 & full_time_result != "Home Win") |
+      (goal_difference == 0 & full_time_result != "Draw") |
+      (goal_difference < 0 & full_time_result != "Away Win")
+    )
+  ) |>
+  kable(caption = "Sanity checks on the cleaned data frame")
+```
+
+Two things to note. The data frame has **no missing values at all** — unusual, and worth stating
+explicitly rather than assuming. And **zero result mismatches** means the recoding in Step 5 is
+consistent with every scoreline: no row claims a "Home Win" while the away side scored more.
+The 46 distinct teams across 25 seasons is also the number you would expect, given promotion and
+relegation churn.
+
+```{r final-frame}
+glimpse(epl_clean)
+```
+
+```{r final-preview}
+head(epl_clean, 10)
+```
+
+This is the deliverable: **9,500 matches × 25 columns**, every name readable, the target variable
+spelled out in words, and no dependency on my local machine.
+
+# A First Look at the Data
+
+The cleaned frame is now easy to ask questions of. Two quick looks — the assignment does not
+require these, but they show the transformation actually paid off.
+
+## Home advantage over 25 seasons
+
+```{r plot-home-advantage}
+season_summary <- epl_clean |>
+  group_by(season) |>
+  summarise(
+    home_win_pct     = mean(full_time_result == "Home Win") * 100,
+    covid_affected   = any(crowd_status == "Behind closed doors"),
+    .groups = "drop"
+  )
+
+ggplot(season_summary, aes(x = season, y = home_win_pct, fill = covid_affected)) +
+  geom_col() +
+  scale_fill_manual(values = c("FALSE" = "grey65", "TRUE" = "#c0392b"),
+                    labels = c("Normal season", "COVID-affected season"),
+                    name = NULL) +
+  labs(
+    title = "Home win percentage, English Premier League 2000-01 to 2024-25",
+    subtitle = "2020-21, played almost entirely without fans, is the lowest of the 25 seasons",
+    x = NULL, y = "Home wins (% of matches)"
+  ) +
+  theme_minimal(base_size = 11) +
+  theme(axis.text.x = element_text(angle = 60, hjust = 1),
+        legend.position = "top")
+```
+
+## Fans present vs. behind closed doors
+
+The article reported home advantage falling from 0.39 to 0.22 points per game. Here is the same
+comparison computed from my cleaned frame, using only Premier League matches:
+
+```{r crowd-comparison}
+epl_clean |>
+  group_by(crowd_status) |>
+  summarise(
+    matches                 = n(),
+    `home pts advantage`    = round(mean(home_points) - mean(away_points), 2),
+    `home goal advantage`   = round(mean(goal_difference), 2),
+    `home shot advantage`   = round(mean(home_shots - away_shots), 2),
+    `home corner advantage` = round(mean(home_corners - away_corners), 2),
+    `home foul difference`  = round(mean(home_fouls - away_fouls), 2),
+    `home yellow diff`      = round(mean(home_yellow_cards - away_yellow_cards), 2),
+    .groups = "drop"
+  ) |>
+  kable(caption = "Home-team advantage with and without crowds (EPL only, 2000-01 to 2024-25)")
+```
+
+The direction matches the published study on every measure, and in the Premier League the effect
+is even starker than the pooled European figure. Home advantage did not merely halve — it very
+nearly vanished. With fans, the home side collected **0.51 more points per game**; behind closed
+doors, **0.01** — statistically indistinguishable from no advantage at all. Home wins fell from
+46.1% of matches to 39.0%, while away wins rose from 29.0% to 38.7%, leaving the two almost level.
+The foul column flips sign: home teams were normally whistled for *fewer* fouls than their
+opponents (−0.54 per game), but in empty stadiums they were whistled for *more* (+0.48).
+
+My figures are larger than the article's because the comparison groups differ: the paper pooled
+11 countries over a short matched window, while my "fans present" baseline is 24 seasons of
+English football. The 462 behind-closed-doors matches are also a small sample, so this is a
+descriptive comparison, not a causal estimate.
+
+# Findings and Recommendations
+
+## How I would extend, verify, or update this work
+
+- **Verify the crowd flag.** My `crowd_status` variable is a date range, and it is wrong for the
+  handful of December 2020 fixtures and the final 2020–21 matchday that admitted limited crowds.
+  Joining a per-match attendance figure would replace an approximation with a fact, and would let
+  me treat crowd size as continuous rather than on/off.
+- **Control for schedule strength.** The behind-closed-doors period was also a period of
+  congested fixtures, five substitutes, and no pre-season. Any of those could explain part of the
+  effect I attributed to the crowd. A model with team and season fixed effects would separate them.
+- **Update with more leagues.** Adding the Championship, Bundesliga, La Liga and Serie A files
+  from the same source would take one more loop and would let me check whether the effect size
+  differs by country, which is what the original paper actually tested.
+- **Move toward prediction.** With `full_time_result` as the target and the shot, corner and card
+  columns as features, this frame is ready for a multinomial classification model. The honest
+  version requires care: shots and corners are recorded *during* the match, so a genuine
+  pre-match model has to use rolling team form computed from prior fixtures instead.
+- **Look at referees.** The `referee` column is untouched here, but the article's finding about
+  fouls and cards is really a claim about officials. Grouping card rates by referee and crowd
+  status is a natural follow-up.
+
+# References
+
+- McCarrick, D., Bilalic, M., Neave, N., & Wolfson, S. (2021).
+  [Home advantage during the COVID-19 pandemic: Analyses of European football leagues](https://www.sciencedirect.com/science/article/pii/S146902922100131X).
+  *Psychology of Sport and Exercise*, 56.
+- University of Leeds (2021).
+  [How empty stadiums affected football during pandemic](https://www.leeds.ac.uk/news-science/news/article/4894/how-empty-stadiums-affected-football-during-pandemic).
+- [football-data.co.uk — England football results and betting odds](https://www.football-data.co.uk/englandm.php) (original data source).
+- [English Premier League (EPL) Match Data 2000-2025](https://www.kaggle.com/datasets/marcohuiii/english-premier-league-epl-match-data-2000-2025) — Kaggle mirror of the same source.
+- I used Claude AI (Anthropic) for assistance on this assignment, with the prompt:
+  *"Give me a detailed step by step guideline on how to go about this data science beginner
+  assignment."* Claude helped select the dataset, draft the R code and document structure, and
+  verify the computed figures; I reviewed, edited, and ran all code myself.

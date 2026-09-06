@@ -98,8 +98,7 @@ data frame with `purrr::map_dfr()`. The `season` column is created from the file
 files are stacked, so I never lose track of which season a row came from.
 
 ```{r load-data}
-# Change this to your own GitHub repo once you have uploaded data/raw/ there.
-base_url <- "https://raw.githubusercontent.com/datasets/football-datasets/master/datasets/premier-league"
+base_url <- "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/data/raw"
 
 season_codes <- c("0001","0102","0203","0304","0405","0506","0607","0708","0809",
                   "0910","1011","1112","1213","1314","1415","1516","1617","1718",

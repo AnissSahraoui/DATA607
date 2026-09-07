@@ -28,8 +28,8 @@ Original source: [football-data.co.uk](https://www.football-data.co.uk/englandm.
 mirrored on Kaggle as
 [English Premier League (EPL) Match Data 2000-2025](https://www.kaggle.com/datasets/marcohuiii/english-premier-league-epl-match-data-2000-2025).
 
-The `.Rmd` reads the CSVs over HTTPS from a public GitHub repository, so it reproduces on any
-machine without local files.
+The `.Rmd` reads the CSVs over HTTPS directly from this repository's `data/raw/`, so it reproduces
+on any machine without local files.
 
 ## Raw column codes
 
@@ -44,4 +44,5 @@ Home Win / Draw / Away Win.
 
 ## Links
 
-- RPubs: _add your published URL here_
+- RPubs: https://rpubs.com/benadam0/epl-loading-transformation
+- GitHub: https://github.com/AnissSahraoui/DATA607

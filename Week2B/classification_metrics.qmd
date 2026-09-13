@@ -1,0 +1,442 @@
+---
+title: "Evaluating Classification Model Performance"
+subtitle: "How the probability threshold changes a penguin sex classifier's metrics"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(scales)
+library(knitr)
+
+# Colors: slot 1 and 2 of a colorblind-safe categorical palette.
+# Female is the positive class throughout, so it always gets blue.
+col_female <- "#2a78d6"
+col_male   <- "#eb6834"
+ink_2      <- "#52514e"
+
+theme_report <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(),
+        plot.title.position = "plot",
+        plot.subtitle = element_text(color = ink_2),
+        axis.text = element_text(color = ink_2))
+```
+
+# Overview
+
+A classification model rarely outputs a plain yes or no. It outputs a **probability**, and someone
+has to choose a **threshold** that turns the probability into a decision. This assignment
+evaluates a model that predicts whether a penguin is female. It looks at how the model's errors,
+and the metrics built from them, change as the threshold moves from 0.2 to 0.5 to 0.8.
+
+Throughout the analysis, **female is the positive class**: a *true positive* is a female penguin
+the model correctly calls female.
+
+# The Data
+
+The predictions come from the course repository and are read directly from GitHub, so this
+document runs on any machine.
+
+```{r}
+#| label: load
+penguins <- read_csv(
+  "https://raw.githubusercontent.com/acatlin/data/master/penguin_predictions.csv",
+  show_col_types = FALSE
+)
+
+glimpse(penguins)
+```
+
+There are `r nrow(penguins)` penguins and three columns:
+
+| Column | Meaning |
+|---|---|
+| `.pred_female` | The model's probability that the penguin is female |
+| `.pred_class` | The model's label at the default 0.5 threshold |
+| `sex` | The penguin's actual sex |
+
+`.pred_class` holds the words `female` and `male` rather than the 1 and 0 described in the
+assignment. The check below confirms it is exactly the 0.5 rule applied to `.pred_female`, and that
+there are no missing values:
+
+```{r}
+#| label: checks
+tibble(
+  missing_values           = sum(is.na(penguins)),
+  pred_class_matches_rule  = all(penguins$.pred_class ==
+                                   if_else(penguins$.pred_female > 0.5, "female", "male")),
+  probs_exactly_at_a_threshold = sum(penguins$.pred_female %in% c(0.2, 0.5, 0.8))
+)
+```
+
+No probability sits exactly on 0.2, 0.5 or 0.8, so it makes no difference whether a threshold is
+applied with `>` or `>=`.
+
+From here on, `.pred_class` is set aside. Every predicted class is recomputed from `.pred_female`,
+so that the threshold is under our control.
+
+# Null Error Rate
+
+## Class balance
+
+```{r}
+#| label: class-balance
+class_counts <- penguins |>
+  count(sex) |>
+  mutate(share = n / sum(n))
+
+class_counts
+```
+
+```{r}
+#| label: null-error
+majority_class  <- class_counts |> slice_max(n) |> pull(sex)
+null_accuracy   <- max(class_counts$share)
+null_error_rate <- 1 - null_accuracy
+```
+
+The majority class is **`r majority_class`**. A "null model" that ignores every measurement and
+predicts `r majority_class` for every penguin is right `r percent(null_accuracy, 0.1)` of the time.
+Its **null error rate is `r percent(null_error_rate, 0.1)`**: the share of penguins that are not
+`r majority_class`.
+
+```{r}
+#| label: fig-class-balance
+#| fig-cap: "Actual sex of the penguins. The dashed line marks what a model that always guesses the majority class would score."
+#| fig-height: 2.8
+class_counts |>
+  mutate(sex = fct_reorder(str_to_title(sex), n),
+         label = sprintf("%d penguins  (%s)", n, percent(share, 0.1))) |>
+  ggplot(aes(x = n, y = sex, fill = sex)) +
+  geom_col(width = 0.6) +
+  geom_text(aes(label = label), hjust = 1.04, size = 3.8, color = "white", fontface = "bold") +
+  geom_vline(xintercept = max(class_counts$n), linetype = "dashed", color = ink_2) +
+  annotate("text", x = max(class_counts$n), y = 2.45, hjust = 1.02, size = 3.3, color = ink_2,
+           label = sprintf("Always guessing \"%s\": %s accuracy, %s null error rate",
+                           majority_class, percent(null_accuracy, 0.1),
+                           percent(null_error_rate, 0.1))) +
+  scale_fill_manual(values = c(Female = col_female, Male = col_male), guide = "none") +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.08))) +
+  labs(title = "More male penguins than female",
+       x = "Number of penguins", y = NULL) +
+  theme_report +
+  theme(panel.grid.major.y = element_blank())
+```
+
+## Why the null error rate matters
+
+Accuracy on its own has no reference point. A model that is "`r percent(null_accuracy, 0.1)`
+accurate" sounds respectable, yet on this data it has learned nothing: guessing `r majority_class`
+every time scores the same. The null error rate is the **floor**, the score a model must beat
+before it deserves credit.
+
+The floor also moves with class balance. On data that is 95% one class, 95% accuracy is worthless.
+This is common in practice, for example with fraud, rare diseases or equipment failures, where the
+interesting class is small. Without the null error rate, a useless model can look excellent.
+
+# Seeing the Model's Probabilities
+
+Before building any confusion matrix, it helps to see where the probabilities fall. Each dot below
+is one penguin, placed by the model's probability that it is female and grouped by its actual sex.
+
+```{r}
+#| label: fig-probabilities
+#| fig-cap: "Predicted probability of female for every penguin, by actual sex. The dotted lines are the three thresholds."
+#| fig-height: 3.4
+n_uncertain <- sum(penguins$.pred_female > 0.2 & penguins$.pred_female <= 0.8)
+
+set.seed(607)
+penguins |>
+  mutate(sex = factor(str_to_title(sex), levels = c("Male", "Female"))) |>
+  ggplot(aes(x = .pred_female, y = sex, color = sex)) +
+  geom_vline(xintercept = c(0.2, 0.5, 0.8), linetype = "dotted", color = ink_2) +
+  annotate("text", x = c(0.2, 0.5, 0.8) + 0.012, y = 2.62, hjust = 0,
+           label = c("0.2", "0.5", "0.8"), size = 3.3, color = ink_2) +
+  geom_jitter(height = 0.22, width = 0, size = 2.6, alpha = 0.75) +
+  scale_color_manual(values = c(Female = col_female, Male = col_male), guide = "none") +
+  scale_x_continuous(breaks = seq(0, 1, 0.2), limits = c(0, 1)) +
+  scale_y_discrete(expand = expansion(add = c(0.5, 0.75))) +
+  labs(title = "The model is confident about almost every penguin",
+       subtitle = sprintf("Only %d of %d penguins have a probability between 0.2 and 0.8",
+                          n_uncertain, nrow(penguins)),
+       x = "Predicted probability of female", y = "Actual sex") +
+  theme_report +
+  theme(panel.grid.major.y = element_blank())
+```
+
+This plot explains everything that follows. Nearly every penguin sits near 0 or 1, so a threshold
+anywhere in the middle sorts them the same way. **Only `r n_uncertain` penguins can change sides as
+the threshold moves between 0.2 and 0.8**, so the differences between the three confusion matrices
+come down to a few birds.
+
+# Confusion Matrices at Three Thresholds
+
+## Computing TP, FP, TN and FN
+
+At each threshold, a penguin is predicted female when `.pred_female > threshold`. It then falls
+into exactly one of four outcomes:
+
+| Outcome | Predicted | Actual | Meaning |
+|---|---|---|---|
+| **TP** (true positive) | female | female | Female, correctly identified |
+| **FP** (false positive) | female | male | Male, wrongly called female |
+| **TN** (true negative) | male | male | Male, correctly identified |
+| **FN** (false negative) | male | female | Female the model missed |
+
+```{r}
+#| label: confusion-counts
+thresholds <- c(0.2, 0.5, 0.8)
+
+confusion_at <- function(threshold) {
+  penguins |>
+    mutate(predicted = if_else(.pred_female > threshold, "female", "male")) |>
+    summarise(
+      TP = sum(predicted == "female" & sex == "female"),
+      FP = sum(predicted == "female" & sex == "male"),
+      TN = sum(predicted == "male"   & sex == "male"),
+      FN = sum(predicted == "male"   & sex == "female")
+    ) |>
+    mutate(threshold = threshold, .before = 1)
+}
+
+confusion <- map_dfr(thresholds, confusion_at)
+confusion
+```
+
+Every row adds up to `r nrow(penguins)`. As a cross-check, base R's `table()` gives the same counts
+at each threshold without any of the logic above:
+
+```{r}
+#| label: cross-check
+cross_check <- map_dfr(thresholds, \(t) {
+  tab <- table(predicted = penguins$.pred_female > t, actual = penguins$sex)
+  tibble(threshold = t,
+         TP = tab["TRUE", "female"], FP = tab["TRUE", "male"],
+         TN = tab["FALSE", "male"],  FN = tab["FALSE", "female"])
+})
+
+all.equal(as.data.frame(confusion), as.data.frame(cross_check))
+```
+
+## The three matrices
+
+```{r}
+#| label: matrices
+#| results: asis
+show_matrix <- function(threshold) {
+  cm <- confusion |> filter(threshold == !!threshold)
+  tibble(
+    ` ` = c("**Predicted female**", "**Predicted male**"),
+    `Actually female` = c(sprintf("TP = %d", cm$TP), sprintf("FN = %d", cm$FN)),
+    `Actually male`   = c(sprintf("FP = %d", cm$FP), sprintf("TN = %d", cm$TN))
+  ) |>
+    kable(caption = sprintf("Threshold %.1f", threshold), align = "lcc") |>
+    print()
+  cat("\n\n")
+}
+
+walk(thresholds, show_matrix)
+```
+
+```{r}
+#| label: fig-matrices
+#| fig-cap: "The same three confusion matrices. Correct predictions are on the diagonal."
+#| fig-height: 3.2
+confusion |>
+  pivot_longer(TP:FN, names_to = "outcome", values_to = "n") |>
+  mutate(
+    predicted = if_else(outcome %in% c("TP", "FP"), "Predicted\nfemale", "Predicted\nmale"),
+    actual    = if_else(outcome %in% c("TP", "FN"), "Actually female", "Actually male"),
+    correct   = outcome %in% c("TP", "TN"),
+    threshold = sprintf("Threshold %.1f", threshold)
+  ) |>
+  ggplot(aes(x = actual, y = fct_rev(predicted))) +
+  geom_tile(aes(fill = correct), color = "white", linewidth = 2) +
+  geom_text(aes(label = sprintf("%s\n%d", outcome, n)), size = 3.8, lineheight = 0.9) +
+  scale_fill_manual(values = c(`TRUE` = "#cde2fb", `FALSE` = "#f0efec"),
+                    labels = c(`TRUE` = "Correct", `FALSE` = "Error"), name = NULL) +
+  facet_wrap(~ threshold) +
+  labs(x = NULL, y = NULL) +
+  theme_report +
+  theme(panel.grid = element_blank(), legend.position = "top",
+        strip.text = element_text(face = "bold", size = 11))
+```
+
+```{r}
+#| label: matrix-changes
+#| include: false
+cm <- \(t, col) confusion |> filter(threshold == t) |> pull({{ col }})
+```
+
+Moving from 0.2 to 0.8, false positives fall from **`r cm(0.2, FP)` to `r cm(0.8, FP)`** and false
+negatives rise from **`r cm(0.2, FN)` to `r cm(0.8, FN)`**. That is the basic trade-off: a lower
+threshold calls more penguins female, catching more real females but also mislabeling more males.
+A higher threshold does the opposite.
+
+# Performance Metrics
+
+Every metric is a different way of summarizing the four counts:
+
+- **Accuracy** $= \dfrac{TP + TN}{\text{total}}$: the share of all penguins classified correctly.
+- **Precision** $= \dfrac{TP}{TP + FP}$: of the penguins *called* female, the share that are female.
+- **Recall** $= \dfrac{TP}{TP + FN}$: of the penguins that *are* female, the share the model found.
+- **F1** $= 2 \cdot \dfrac{\text{precision} \cdot \text{recall}}{\text{precision} + \text{recall}}$:
+  the harmonic mean of precision and recall. It is high only when both are.
+
+```{r}
+#| label: metrics
+metrics <- confusion |>
+  mutate(
+    accuracy  = (TP + TN) / (TP + FP + TN + FN),
+    precision = TP / (TP + FP),
+    recall    = TP / (TP + FN),
+    f1        = 2 * precision * recall / (precision + recall)
+  )
+
+metrics |>
+  mutate(across(accuracy:f1, ~ sprintf("%.3f", .x))) |>
+  rename(Threshold = threshold, Accuracy = accuracy, Precision = precision,
+         Recall = recall, F1 = f1)
+```
+
+```{r}
+#| label: metric-values
+#| include: false
+m <- \(t, col) metrics |> filter(threshold == t) |> pull({{ col }})
+```
+
+## What the table shows
+
+- **Every threshold clears the baseline comfortably.** Accuracy ranges from
+  `r percent(m(0.2, accuracy), 0.1)` to `r percent(m(0.8, accuracy), 0.1)`, against
+  `r percent(null_accuracy, 0.1)` for always guessing `r majority_class`. The error rate falls from
+  `r percent(null_error_rate, 0.1)` to between `r percent(1 - m(0.8, accuracy), 0.1)` and
+  `r percent(1 - m(0.2, accuracy), 0.1)`.
+- **Precision and recall move in opposite directions.** Raising the threshold from 0.2 to 0.8
+  lifts precision from `r sprintf("%.3f", m(0.2, precision))` to
+  `r sprintf("%.3f", m(0.8, precision))`, while recall slips from
+  `r sprintf("%.3f", m(0.2, recall))` to `r sprintf("%.3f", m(0.8, recall))`.
+- **At 0.5, precision and recall are equal** (`r sprintf("%.3f", m(0.5, precision))`). That
+  happens because the model makes exactly as many false positives as false negatives there
+  (`r cm(0.5, FP)` each).
+- **0.8 scores best on accuracy and F1 here**, but the margins are tiny. The gap between 0.5 and
+  0.8 is a single penguin, and on `r nrow(penguins)` penguins one bird is worth about
+  `r percent(1 / nrow(penguins), 0.1)` of accuracy. These `r nrow(penguins)` penguins are too few to
+  prove that 0.8 is better in general.
+
+## Beyond three thresholds
+
+The assignment asks for three thresholds, but the same calculation runs just as easily at every
+threshold from 0.01 to 0.99. The curves show the trade-off from the table as a continuous picture.
+
+```{r}
+#| label: fig-sweep
+#| fig-cap: "Metrics at every threshold from 0.01 to 0.99. The dotted lines mark 0.2, 0.5 and 0.8."
+#| fig-height: 3.8
+sweep <- map_dfr(seq(0.01, 0.99, by = 0.01), confusion_at) |>
+  mutate(Accuracy  = (TP + TN) / nrow(penguins),
+         Precision = TP / (TP + FP),
+         Recall    = TP / (TP + FN),
+         F1        = 2 * Precision * Recall / (Precision + Recall)) |>
+  pivot_longer(Accuracy:F1, names_to = "metric", values_to = "value") |>
+  mutate(metric = factor(metric, levels = c("Accuracy", "Precision", "Recall", "F1")))
+
+metric_colors <- c(Accuracy = "#2a78d6", Precision = "#eb6834", Recall = "#1baf7a", F1 = "#eda100")
+
+end_labels <- sweep |> filter(threshold == 0.99)
+
+ggplot(sweep, aes(x = threshold, y = value, color = metric)) +
+  geom_vline(xintercept = thresholds, linetype = "dotted", color = ink_2) +
+  geom_line(linewidth = 0.9) +
+  geom_text(data = end_labels, aes(label = metric), hjust = -0.12, size = 3.5,
+            color = "#0b0b0b") +
+  scale_color_manual(values = metric_colors, name = NULL) +
+  scale_x_continuous(breaks = c(0, 0.2, 0.5, 0.8, 1), limits = c(0, 1.12)) +
+  scale_y_continuous(limits = c(0.6, 1), labels = number_format(accuracy = 0.1)) +
+  labs(title = "Recall falls and precision rises as the threshold goes up",
+       x = "Threshold", y = "Metric value") +
+  theme_report +
+  theme(legend.position = "top")
+```
+
+```{r}
+#| label: best-sweep
+#| include: false
+best <- sweep |> filter(metric == "Accuracy") |> slice_max(value, n = 1, with_ties = FALSE)
+```
+
+On this data, accuracy peaks at **`r percent(best$value, 0.1)` with a threshold of
+`r best$threshold`**. It is tempting to adopt that threshold, but it would be tuned on the same
+penguins it is evaluated on, so it would look better here than on new penguins. A threshold should
+be chosen on separate validation data, and more importantly, by **what each kind of mistake
+costs**.
+
+# Choosing a Threshold: Use Cases
+
+No threshold is best in general. The right one depends on which mistake is more expensive.
+
+## When a 0.2 threshold is preferable: missing a positive is costly
+
+A low threshold flags a case as positive even when the model is only somewhat suspicious. It
+accepts more false positives to avoid false negatives, which suits situations where **missing a
+real positive is far worse than a false alarm**.
+
+**Example: cancer screening.** A model reads mammograms and flags patients for a follow-up scan.
+A false positive means an extra appointment and a few anxious days. A false negative means a
+cancer goes undetected while it is still treatable. Flagging everyone with even a 20% estimated
+risk is the right call, because the follow-up scan catches the false alarms.
+
+**The penguin version:** a conservation team relocating female penguins to a protected breeding
+site. Missing a female weakens the new colony, while a male included by mistake can be sorted out
+with a quick field check. A 0.2 threshold gathers nearly every female: recall is
+`r sprintf("%.3f", m(0.2, recall))`, and only `r cm(0.2, FN)` females are missed.
+
+## When a 0.8 threshold is preferable: a false alarm is costly
+
+A high threshold acts only when the model is confident. It accepts missing some positives in
+return for fewer false positives, which suits situations where **acting on a wrong prediction is
+expensive, harmful or hard to undo**.
+
+**Example: automatically blocking a credit card for fraud.** A false positive freezes a genuine
+customer's card at a checkout, which costs goodwill and sometimes the customer. A missed fraudulent
+charge can still be caught by later review. Blocking automatically only above 0.8, and sending
+lower-confidence cases to a human reviewer, keeps false alarms rare.
+
+**The penguin version:** a study that fits only female penguins with a harness-mounted tracker
+sized for females. Fitting one to a larger male could injure it, and the capture itself stresses
+the bird. At 0.8, precision is `r sprintf("%.3f", m(0.8, precision))` and only `r cm(0.8, FP)`
+males would be caught by mistake.
+
+# Findings
+
+- **The baseline is `r percent(null_error_rate, 0.1)` error.** Always guessing
+  `r majority_class` gets that far, and the model beats it at all three thresholds.
+- **The model is confident.** Only `r n_uncertain` of `r nrow(penguins)` penguins have a
+  probability between 0.2 and 0.8, so the three thresholds differ by just a few penguins.
+- **The threshold trades one error for another.** From 0.2 to 0.8, false positives fall from
+  `r cm(0.2, FP)` to `r cm(0.8, FP)` while false negatives rise from `r cm(0.2, FN)` to
+  `r cm(0.8, FN)`. Precision rises and recall falls.
+- **0.8 scored highest on accuracy and F1, by one or two penguins.** That is too small a
+  difference to call a real advantage. The choice should follow the cost of each mistake, as in the
+  use cases above, and be tested on new data.
+
+# References
+
+- [Performance Metrics for Classification Problems in Machine Learning](https://github.com/acatlin/data/blob/master/Performance%20Metrics%20for%20Classification%20problems%20in%20Machine%20Learning.pdf) (course reading, from the DATA 607 course repository).
+- Course data: [`penguin_predictions.csv`](https://github.com/acatlin/data/blob/master/penguin_predictions.csv).
+- Claude AI (Anthropic) and ChatGPT (OpenAI) were used for assistance with the code and write-up. I
+  reviewed, ran and verified all code myself.

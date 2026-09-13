@@ -50,3 +50,4 @@ Home Win / Draw / Away Win.
 ## Other assignments
 
 - [Week 2: SQL and R, Movie Ratings](Week2/)
+- [Week 2B: Evaluating Classification Model Performance](Week2B/)

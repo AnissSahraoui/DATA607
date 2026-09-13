@@ -36,8 +36,6 @@ Two questions shape the analysis. First, how should ratings be handled when some
 movie? Second, does it help to standardize ratings, so that generous and harsh raters are
 comparable?
 
-**Collaborators:** Claude AI (Anthropic) and ChatGPT (OpenAI), used as AI assistants.
-
 # Data Collection
 
 ## The movies

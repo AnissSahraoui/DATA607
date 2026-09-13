@@ -37,3 +37,8 @@ Requires R with `tidyverse`, and Quarto.
 ```bash
 quarto render classification_metrics.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/classification-thresholds
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week2B

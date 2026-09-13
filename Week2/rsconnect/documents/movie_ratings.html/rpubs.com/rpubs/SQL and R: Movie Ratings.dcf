@@ -6,5 +6,5 @@ server: rpubs.com
 hostUrl: rpubs.com
 appId: https://api.rpubs.com/api/v1/document/1458326/68853968af56410f85a04c6b3a21fb99
 bundleId: https://api.rpubs.com/api/v1/document/1458326/68853968af56410f85a04c6b3a21fb99
-url: http://rpubs.com/publish/claim/1458326/4b505c02bffe461e996fef78dcd0bd3c
+url: http://rpubs.com/benadam0/1458326
 version: 1

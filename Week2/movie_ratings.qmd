@@ -57,7 +57,7 @@ movie. Respondents are labeled *Friend 1* to *Friend 6* rather than by name, bec
 repository is public.
 
 As it turned out, **all six friends had seen all six movies**, so the collected data has no
-missing ratings. Section 5 explains how missing ratings are handled anyway, and tests that strategy
+missing ratings. Section 6 explains how missing ratings are handled anyway, and tests that strategy
 by hiding some ratings on purpose.
 
 # Database Design
@@ -596,8 +596,8 @@ matter in a larger survey, and the conditions are specific:
 # References
 
 - [SQLite documentation](https://sqlite.org/docs.html) and the [RSQLite package](https://rsqlite.r-dbi.org/).
-- Claude AI (Anthropic) and ChatGPT (OpenAI) were used for assistance with the database design,
-  code and write-up. I reviewed, ran and verified all code myself.
+- Claude AI (Anthropic) and ChatGPT (OpenAI) were used for assistance. I reviewed, ran and verified
+  all code myself.
 
 ```{r}
 #| label: cleanup

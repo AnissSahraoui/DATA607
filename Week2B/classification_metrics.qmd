@@ -438,5 +438,5 @@ males would be caught by mistake.
 
 - [Performance Metrics for Classification Problems in Machine Learning](https://github.com/acatlin/data/blob/master/Performance%20Metrics%20for%20Classification%20problems%20in%20Machine%20Learning.pdf) (course reading, from the DATA 607 course repository).
 - Course data: [`penguin_predictions.csv`](https://github.com/acatlin/data/blob/master/penguin_predictions.csv).
-- Claude AI (Anthropic) and ChatGPT (OpenAI) were used for assistance with the code and write-up. I
-  reviewed, ran and verified all code myself.
+- Claude AI (Anthropic) and ChatGPT (OpenAI) were used for assistance. I reviewed, ran and verified
+  all code myself.

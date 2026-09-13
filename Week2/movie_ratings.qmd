@@ -1,0 +1,608 @@
+---
+title: "SQL and R: Movie Ratings"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    toc-depth: 2
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(DBI)
+library(RSQLite)
+library(tidyverse)
+library(knitr)
+
+con <- dbConnect(SQLite(), "movie_ratings.sqlite")
+```
+
+# Overview
+
+I asked six friends to rate six popular 2025 movies on a 1–5 scale, stored their answers in a
+normalized SQLite database, and loaded the data into R. The result is a small **user–item ratings
+matrix**, the same shape of data a recommender system starts from.
+
+Two questions shape the analysis. First, how should ratings be handled when someone hasn't seen a
+movie? Second, does it help to standardize ratings, so that generous and harsh raters are
+comparable?
+
+**Collaborators:** Claude AI (Anthropic) and ChatGPT (OpenAI), used as AI assistants.
+
+# Data Collection
+
+## The movies
+
+I chose six widely released 2025 films across different genres, so that the survey was not tilted
+toward one kind of viewer.
+
+```{r}
+#| label: movies-table
+dbGetQuery(con, "SELECT title, release_year, genre FROM movies ORDER BY movie_id")
+```
+
+## The survey
+
+Each friend received the list of six movies and was asked to rate the ones they had seen with a
+whole number from 1 (poor) to 5 (excellent), leaving any unseen movie blank. The answers are in
+[`data/survey_responses.csv`](data/survey_responses.csv), one row per person and one column per
+movie. Respondents are labeled *Friend 1* to *Friend 6* rather than by name, because this
+repository is public.
+
+As it turned out, **all six friends had seen all six movies**, so the collected data has no
+missing ratings. Section 5 explains how missing ratings are handled anyway, and tests that strategy
+by hiding some ratings on purpose.
+
+# Database Design
+
+## Schema
+
+The data is split into three tables instead of one wide table with a column per movie. People and
+movies each have their own table, and `ratings` is a **junction table** linking them. This is the
+standard way to model a many-to-many relationship: one person rates many movies, and one movie is
+rated by many people.
+
+```{mermaid}
+erDiagram
+    USERS ||--o{ RATINGS : gives
+    MOVIES ||--o{ RATINGS : receives
+    USERS {
+        int user_id PK
+        text name
+    }
+    MOVIES {
+        int movie_id PK
+        text title
+        int release_year
+        text genre
+    }
+    RATINGS {
+        int user_id PK, FK
+        int movie_id PK, FK
+        int rating
+    }
+```
+
+Three design choices matter:
+
+- **Composite primary key `(user_id, movie_id)`**: a person cannot rate the same movie twice.
+- **Foreign keys** make sure every rating belongs to a real person and a real movie.
+- **`CHECK (rating BETWEEN 1 AND 5)`**: the database itself rejects an out-of-range value such as
+  a mistyped `44`.
+
+An unseen movie gets **no row** in `ratings`. It is never stored as `0`, because a zero would look
+like a very bad rating and would drag the movie's average down.
+
+## SQL to create the tables
+
+```{sql}
+--| label: show-create
+--| eval: false
+--| code: !expr readLines("sql/01_create_tables.sql")
+```
+
+## SQL to populate the tables
+
+The movies are inserted by hand:
+
+```{sql}
+--| label: show-insert-movies
+--| eval: false
+--| code: !expr readLines("sql/02_insert_movies.sql")
+```
+
+The people and their ratings are inserted by
+[`sql/03_insert_users_and_ratings.sql`](sql/03_insert_users_and_ratings.sql). That file is
+generated from the survey CSV by [`R/build_database.R`](R/build_database.R), which first checks
+that every rating is a whole number from 1 to 5. The first lines of the file:
+
+```{sql}
+--| label: show-insert-ratings
+--| eval: false
+--| code: !expr head(readLines("sql/03_insert_users_and_ratings.sql"), 16)
+```
+
+To rebuild the database from scratch:
+
+```bash
+Rscript R/build_database.R
+```
+
+## Credentials
+
+SQLite stores the database in a local file, so there is no server, username or password anywhere
+in this project. If the data lived in PostgreSQL instead, the connection would read its credentials
+from environment variables in a private `~/.Renviron` file that is never committed:
+
+```{r}
+#| label: postgres-example
+#| eval: false
+con <- DBI::dbConnect(
+  RPostgres::Postgres(),
+  host     = Sys.getenv("PGHOST"),
+  dbname   = Sys.getenv("PGDATABASE"),
+  user     = Sys.getenv("PGUSER"),
+  password = Sys.getenv("PGPASSWORD")
+)
+```
+
+# Loading the Data into R
+
+## Querying SQL directly
+
+This query returns **every possible person–movie pair**. `CROSS JOIN` creates all combinations,
+and `LEFT JOIN` attaches a rating where one exists. A pair with no rating comes back as SQL `NULL`,
+which R reads as `NA`. Missing ratings therefore show up as visible `NA` rows instead of silently
+not existing.
+
+```{sql}
+--| label: all-pairs-sql
+--| connection: con
+--| output.var: ratings
+SELECT u.user_id,
+       u.name  AS person,
+       m.movie_id,
+       m.title AS movie,
+       m.genre,
+       r.rating
+FROM users u
+CROSS JOIN movies m
+LEFT JOIN ratings r
+       ON r.user_id  = u.user_id
+      AND r.movie_id = m.movie_id
+ORDER BY u.user_id, m.movie_id
+```
+
+```{r}
+#| label: to-tibble
+ratings <- as_tibble(ratings) |>
+  mutate(movie = factor(movie, levels = unique(movie)))
+
+glimpse(ratings)
+```
+
+## Checking it matches the database
+
+```{r}
+#| label: sanity
+n_people   <- n_distinct(ratings$person)
+n_movies   <- n_distinct(ratings$movie)
+n_observed <- sum(!is.na(ratings$rating))
+n_missing  <- sum(is.na(ratings$rating))
+n_in_db    <- dbGetQuery(con, "SELECT COUNT(*) AS n FROM ratings")$n
+
+tibble(
+  people           = n_people,
+  movies           = n_movies,
+  possible_pairs   = nrow(ratings),
+  ratings_observed = n_observed,
+  ratings_missing  = n_missing,
+  matches_database = n_observed == n_in_db
+)
+```
+
+All `r nrow(ratings)` person–movie pairs are present. `r n_observed` have a rating and
+`r n_missing` are missing. The observed count matches the `ratings` table exactly, so the joins
+neither lost nor duplicated anything.
+
+# The User–Item Matrix
+
+Pivoting to one row per person and one column per movie gives the matrix a recommender system
+would use.
+
+```{r}
+#| label: matrix
+user_item <- ratings |>
+  select(person, movie, rating) |>
+  pivot_wider(names_from = movie, values_from = rating)
+
+user_item
+```
+
+```{r}
+#| label: fig-heatmap
+#| fig-cap: "Every rating in the survey."
+#| fig-height: 3.4
+ggplot(ratings, aes(x = movie, y = fct_rev(person), fill = rating)) +
+  geom_tile(color = "white", linewidth = 1) +
+  geom_text(aes(label = rating), na.rm = TRUE, size = 4) +
+  scale_fill_gradient(low = "#fde0c5", high = "#c0392b", limits = c(1, 5),
+                      na.value = "grey90", name = "Rating") +
+  labs(x = NULL, y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(panel.grid = element_blank(),
+        axis.text.x = element_text(angle = 25, hjust = 1))
+```
+
+```{r}
+#| label: agreement
+n_patterns     <- user_item |> select(-person) |> distinct() |> nrow()
+largest_group  <- user_item |> count(pick(-person)) |> pull(n) |> max()
+unanimous      <- ratings |> group_by(movie) |> filter(n_distinct(rating) == 1) |>
+                    distinct(movie, rating)
+```
+
+The friends agree a lot. Their `r n_people` responses contain only **`r n_patterns` distinct
+patterns**, and `r largest_group` people gave exactly the same six ratings. Every friend gave the
+same score to
+`r paste0(unanimous$movie, " (", unanimous$rating, ")", collapse = ", ")`.
+This is a very homogeneous group, which limits what six responses can reveal. That shows up in
+both analyses below.
+
+# Handling Missing Ratings
+
+## The strategy
+
+A missing rating means *"hasn't seen it"*. It does not mean *"rated it 0"*, and it does not mean
+*"thinks it's average"*. The strategy follows from that:
+
+1. **Store nothing.** An unseen movie has no row in `ratings`. The `CROSS JOIN` query turns the gap
+   into an `NA` in R, so it can never be mistaken for a score.
+2. **Average only the ratings that exist** (`na.rm = TRUE`), and always report how many ratings
+   each average is based on.
+3. **Discount averages built on few ratings** with a *damped mean*. It adds $k$ imaginary "typical"
+   ratings to every movie, which pulls averages with little data toward the overall mean and barely
+   moves averages with plenty of data:
+
+$$
+\text{damped mean} = \frac{\sum \text{ratings} + k \cdot \bar{r}_{\text{all}}}{n + k}
+$$
+
+Here $n$ is the number of ratings for the movie, $\bar{r}_{\text{all}}$ is the average of all
+ratings, and I use $k = 2$.
+
+The pipeline was built with blanks in mind. `R/build_database.R` reads a blank survey cell as
+missing and simply does not insert a row for it.
+
+## Testing the strategy by hiding ratings
+
+My survey happens to have no gaps. That is actually useful, because it means the **true average of
+every movie is known**. I can hide some ratings at random, compute averages from what is left, and
+measure how far each method lands from the truth. **The hidden ratings are a simulation, not survey
+data.**
+
+Here is one example of the matrix with about 30% of ratings hidden:
+
+```{r}
+#| label: one-mask
+set.seed(607)
+observed <- ratings |> filter(!is.na(rating)) |> mutate(rating = as.numeric(rating))
+
+hide_ratings <- function(data, p_missing) {
+  data |> mutate(rating = if_else(runif(n()) < p_missing, NA_real_, rating))
+}
+
+example <- hide_ratings(observed, 0.3)
+
+example |>
+  select(person, movie, rating) |>
+  pivot_wider(names_from = movie, values_from = rating) |>
+  mutate(across(-person, ~ if_else(is.na(.x), "·", as.character(.x))))
+```
+
+Three ways of averaging this incomplete matrix, compared with the real averages from the full
+survey:
+
+```{r}
+#| label: one-mask-means
+k <- 2
+
+average_three_ways <- function(data) {
+  overall <- mean(data$rating, na.rm = TRUE)
+  data |>
+    group_by(movie) |>
+    summarise(
+      n_left     = sum(!is.na(rating)),
+      zero_fill  = mean(replace_na(rating, 0)),
+      ignore_na  = if (n_left > 0) mean(rating, na.rm = TRUE) else overall,
+      damped     = (sum(rating, na.rm = TRUE) + k * overall) / (n_left + k),
+      .groups = "drop"
+    )
+}
+
+true_means <- observed |> group_by(movie) |> summarise(true_mean = mean(rating))
+
+average_three_ways(example) |>
+  left_join(true_means, by = "movie") |>
+  relocate(true_mean, .after = n_left) |>
+  mutate(across(where(is.double), ~ round(.x, 2)))
+```
+
+Filling the gaps with zero is clearly wrong: every movie that lost a rating drops sharply, however
+well it was liked. One random draw can be lucky or unlucky, though, so the next step repeats the
+experiment many times.
+
+## Repeating it 500 times
+
+```{r}
+#| label: simulation
+simulate <- function(p_missing, reps = 500) {
+  map_dfr(seq_len(reps), \(i) {
+    hide_ratings(observed, p_missing) |>
+      average_three_ways() |>
+      mutate(rep = i)
+  }) |>
+    left_join(true_means, by = "movie") |>
+    pivot_longer(c(zero_fill, ignore_na, damped), names_to = "method", values_to = "estimate") |>
+    group_by(method) |>
+    summarise(mean_abs_error = mean(abs(estimate - true_mean)), .groups = "drop") |>
+    mutate(p_missing = p_missing)
+}
+
+set.seed(607)
+sim_results <- map_dfr(c(0.1, 0.3, 0.5, 0.7), simulate) |>
+  mutate(method = recode(method,
+                         zero_fill = "Fill gaps with 0",
+                         ignore_na = "Ignore gaps (na.rm)",
+                         damped    = "Damped mean (k = 2)"))
+
+sim_results |>
+  mutate(mean_abs_error = round(mean_abs_error, 3),
+         p_missing = paste0(p_missing * 100, "% hidden")) |>
+  pivot_wider(names_from = p_missing, values_from = mean_abs_error)
+```
+
+```{r}
+#| label: fig-simulation
+#| fig-cap: "Average distance between each method's estimate and the true movie average, over 500 random draws per level. Lower is better."
+#| fig-height: 3.6
+ggplot(sim_results, aes(x = p_missing, y = mean_abs_error, color = method)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2.5) +
+  scale_x_continuous(labels = scales::percent, breaks = c(0.1, 0.3, 0.5, 0.7)) +
+  scale_color_manual(values = c("Fill gaps with 0" = "grey60",
+                                "Ignore gaps (na.rm)" = "#2c7fb8",
+                                "Damped mean (k = 2)" = "#c0392b"), name = NULL) +
+  labs(x = "Share of ratings hidden", y = "Mean absolute error (rating points)") +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top")
+```
+
+```{r}
+#| label: sim-summary
+#| include: false
+err <- function(m, p) sim_results |> filter(method == m, p_missing == p) |> pull(mean_abs_error)
+winner <- function(p) {
+  sim_results |> filter(method != "Fill gaps with 0", p_missing == p) |>
+    slice_min(mean_abs_error, n = 1) |> pull(method)
+}
+crossover <- sim_results |>
+  filter(method != "Fill gaps with 0") |>
+  group_by(p_missing) |>
+  slice_min(mean_abs_error, n = 1) |>
+  ungroup()
+damped_wins_at <- crossover |> filter(method == "Damped mean (k = 2)") |> pull(p_missing)
+```
+
+With 30% of ratings hidden, filling the gaps with zero misses the true average by
+**`r round(err("Fill gaps with 0", 0.3), 2)` points** on average. Ignoring the gaps misses by
+`r round(err("Ignore gaps (na.rm)", 0.3), 2)`, and the damped mean by
+`r round(err("Damped mean (k = 2)", 0.3), 2)`. Zero-filling is several times worse than either
+alternative at every level, which settles the first question: gaps must never be treated as
+zeros.
+
+The more interesting result is that **simply ignoring the gaps beat the damped mean at every
+level**, even with 70% of ratings hidden
+(`r round(err("Ignore gaps (na.rm)", 0.7), 2)` vs `r round(err("Damped mean (k = 2)", 0.7), 2)`).
+I expected the reverse, and the reason lies in this particular survey. The friends rated each movie
+almost identically, so even one remaining rating is already close to the true average. Damping then
+has no noise to smooth out. It only adds bias, pulling *Weapons* (a unanimous 3) up toward the
+overall 4.5 and *F1* and *Wicked* (unanimous 5s) down.
+
+The damped mean earns its place in the opposite situation, where people disagree about a movie and
+only one or two ratings remain. There a single outlier can decide the ranking, and a little pull
+toward the overall average is a good trade.
+
+**My strategy:** keep gaps as `NA`, never fill them with zero, average only the real ratings, and
+show the number of ratings next to every average. Damping is a tool to reach for when ratings are
+both sparse and disagree. For this group of consistent raters it would make the averages worse.
+
+One caveat the simulation cannot capture: in a real survey, gaps are **not random**. People choose
+what to watch, so a horror fan who skips a musical probably would have rated it lower than the
+musical's fans did. Random hiding tests the averaging methods but not that selection effect.
+
+# Results: Average Ratings
+
+```{r}
+#| label: damped-mean
+overall_mean <- mean(ratings$rating, na.rm = TRUE)
+
+movie_summary <- ratings |>
+  group_by(movie, genre) |>
+  summarise(
+    n_ratings   = sum(!is.na(rating)),
+    raw_mean    = mean(rating, na.rm = TRUE),
+    damped_mean = (sum(rating, na.rm = TRUE) + k * overall_mean) / (n_ratings + k),
+    .groups = "drop"
+  ) |>
+  arrange(desc(raw_mean))
+
+movie_summary |>
+  mutate(across(c(raw_mean, damped_mean), ~ round(.x, 2)))
+```
+
+```{r}
+#| label: top-bottom
+#| include: false
+# Name every movie that shares the top (or bottom) score, so ties are reported honestly.
+movies_at <- function(score) {
+  hits <- movie_summary |> filter(abs(raw_mean - score) < 1e-9)
+  paste0("**", hits$movie, "**", collapse = " and ")
+}
+top_movies    <- movies_at(max(movie_summary$raw_mean))
+bottom_movies <- movies_at(min(movie_summary$raw_mean))
+```
+
+```{r}
+#| label: fig-movie-means
+#| fig-cap: "Average rating per movie. The dashed line is the average across all ratings."
+#| fig-height: 3.4
+movie_summary |>
+  mutate(movie = fct_reorder(movie, raw_mean)) |>
+  ggplot(aes(x = raw_mean, y = movie)) +
+  geom_vline(xintercept = overall_mean, linetype = "dashed", color = "grey50") +
+  geom_segment(aes(x = 1, xend = raw_mean, yend = movie), color = "grey80", linewidth = 1) +
+  geom_point(size = 3.5, color = "#c0392b") +
+  geom_text(aes(label = sprintf("%.2f", raw_mean)), nudge_x = 0.22, size = 3.6) +
+  scale_x_continuous(limits = c(1, 5.3), breaks = 1:5) +
+  labs(x = "Average rating (1–5)", y = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+Across all `r n_observed` ratings the average is **`r round(overall_mean, 2)`**, so this group
+liked these movies overall. The highest-rated `r if (str_count(top_movies, " and ") > 0) "are" else "is"`
+`r top_movies`, rated `r max(movie_summary$raw_mean)` by every friend, and the lowest is
+`r bottom_movies` at `r round(min(movie_summary$raw_mean), 2)`. With every movie rated by all
+`r n_people` friends, the damped mean pulls every average toward the overall mean by the same
+proportion, so it leaves the ranking unchanged.
+
+# Is Standardizing Ratings Beneficial?
+
+## What it does
+
+People use rating scales differently. For one person "good" is a 3, and for another it is a 5.
+**Mean-centering** subtracts each person's own average from their ratings, so +1 means "one point
+above what this person usually gives". **Z-scores** also divide by the person's standard
+deviation, which puts people who use the whole scale and people who stick to 4s and 5s on the same
+footing.
+
+```{r}
+#| label: person-summary
+person_summary <- ratings |>
+  filter(!is.na(rating)) |>
+  group_by(person) |>
+  summarise(
+    movies_rated = n(),
+    avg_given    = mean(rating),
+    sd_given     = sd(rating),
+    .groups = "drop"
+  )
+
+person_summary |>
+  mutate(across(c(avg_given, sd_given), ~ round(.x, 2)))
+```
+
+```{r}
+#| label: standardize
+standardized <- ratings |>
+  filter(!is.na(rating)) |>
+  group_by(person) |>
+  mutate(
+    person_sd = sd(rating),
+    centered  = rating - mean(rating),
+    # sd is NA with one rating and 0 when every rating is identical;
+    # either way the person says nothing about relative preference
+    z_score   = if_else(is.na(person_sd) | person_sd == 0, 0, centered / person_sd)
+  ) |>
+  ungroup()
+
+rank_comparison <- standardized |>
+  group_by(movie) |>
+  summarise(
+    raw_mean      = mean(rating),
+    centered_mean = mean(centered),
+    z_mean        = mean(z_score),
+    .groups = "drop"
+  ) |>
+  mutate(
+    raw_rank      = min_rank(desc(raw_mean)),
+    centered_rank = min_rank(desc(centered_mean)),
+    z_rank        = min_rank(desc(z_mean))
+  ) |>
+  arrange(raw_rank)
+
+rank_comparison |>
+  mutate(across(where(is.double), ~ round(.x, 2)))
+
+rank_changes_centered <- sum(rank_comparison$raw_rank != rank_comparison$centered_rank)
+rank_changes_z        <- sum(rank_comparison$raw_rank != rank_comparison$z_rank)
+same_average <- n_distinct(round(person_summary$avg_given, 9)) == 1
+same_spread  <- n_distinct(round(person_summary$sd_given, 9)) == 1
+```
+
+## Did it change anything?
+
+Mean-centering changed the rank of **`r rank_changes_centered` of `r nrow(rank_comparison)`**
+movies, and z-scores changed **`r rank_changes_z`**.
+
+`r if (same_average) paste0("The reason is visible in the table above: every friend's average rating is exactly **", round(person_summary$avg_given[1], 2), "**. Nobody in this group is a generous or a harsh rater relative to the others, so subtracting each person's average subtracts the same number from everyone. The result is a shifted version of the raw ratings in the same order.") else "People's averages differ, so centering reweights the movies according to who rated them."`
+`r if (same_spread) "Their spreads are identical too, so dividing by the standard deviation changes nothing either." else ""`
+
+**For this dataset, standardization is not beneficial. It is harmless but adds nothing.** It would
+matter in a larger survey, and the conditions are specific:
+
+- **Mean-centering helps when people's averages differ *and* they watched different movies.** If
+  the generous raters all saw one film and the harsh raters another, raw averages mostly measure
+  the audience instead of the movie. Centering removes that effect. When everyone rates everything,
+  as here, the effect cannot occur.
+- **Z-scores are fragile with few ratings.** A standard deviation from two or three ratings is
+  noisy, and it becomes zero if someone gives every movie the same score.
+- **Centering discards single ratings.** A person who rated only one movie ends up with a centered
+  rating of exactly 0, so their opinion disappears.
+
+# Findings and Recommendations
+
+## What I found
+
+- The data is a `r n_people` × `r n_movies` user–item matrix with no gaps, stored in a normalized
+  three-table schema where every row can be recreated from SQL.
+- **`r str_remove_all(top_movies, "\\*")`** topped the survey, and **`r str_remove_all(bottom_movies, "\\*")`**
+  came last, rated `r round(min(movie_summary$raw_mean), 2)` by every friend.
+- When ratings were hidden at random, filling gaps with zero was by far the worst method. Averaging
+  only the real ratings was the most accurate. Damping made things worse, because these friends
+  rate so consistently that there was no noise for it to smooth.
+- Standardizing changed nothing, because every friend's average rating was the same.
+
+## Next steps
+
+- **Survey a wider group.** Six friends produced only `r n_patterns` distinct response patterns.
+  Classmates or coworkers who have not watched these movies together would give more variety, and
+  probably real gaps.
+- **Collect ratings with survey software.** A Google Form exported to CSV would plug straight into
+  `R/build_database.R`, with no retyping.
+- **Build a first recommender.** With more varied data, the centered matrix is the input for
+  user-based collaborative filtering: find the people most similar to you, then predict your
+  missing ratings from theirs.
+- **Treat "didn't watch" as information.** Unseen movies are not missing at random, and recommender
+  systems often do better when they model the choice to watch alongside the rating.
+
+# References
+
+- [SQLite documentation](https://sqlite.org/docs.html) and the [RSQLite package](https://rsqlite.r-dbi.org/).
+- Claude AI (Anthropic) and ChatGPT (OpenAI) were used for assistance with the database design,
+  code and write-up. I reviewed, ran and verified all code myself.
+
+```{r}
+#| label: cleanup
+#| include: false
+dbDisconnect(con)
+```

@@ -46,3 +46,7 @@ Home Win / Draw / Away Win.
 
 - RPubs: https://rpubs.com/benadam0/epl-loading-transformation
 - GitHub: https://github.com/AnissSahraoui/DATA607
+
+## Other assignments
+
+- [Week 2: SQL and R, Movie Ratings](Week2/)

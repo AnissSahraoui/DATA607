@@ -59,3 +59,8 @@ SQLite is a local file, so there are no credentials in this project.
 ## Collaborators
 
 Claude AI (Anthropic) and ChatGPT (OpenAI), used as AI assistants.
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/movie-ratings-sql
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week2

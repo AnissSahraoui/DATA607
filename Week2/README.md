@@ -56,10 +56,6 @@ cat sql/01_create_tables.sql sql/02_insert_movies.sql sql/03_insert_users_and_ra
 
 SQLite is a local file, so there are no credentials in this project.
 
-## Collaborators
-
-Claude AI (Anthropic) and ChatGPT (OpenAI), used as AI assistants.
-
 ## Links
 
 - RPubs: https://rpubs.com/benadam0/movie-ratings-sql

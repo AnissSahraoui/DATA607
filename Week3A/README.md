@@ -21,7 +21,6 @@ A Global Baseline Estimate movie recommender in R, applied to my Week 2 movie ra
 | `global_baseline.qmd` | The analysis (Quarto) |
 | `global_baseline.html` | Rendered output |
 | `MovieRatings.xlsx` | Course spreadsheet with the algorithm |
-| `Week3A_Approach.pdf` | Approach |
 
 The ratings are read from `../Week2/movie_ratings.sqlite`.
 

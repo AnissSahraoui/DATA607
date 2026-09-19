@@ -29,10 +29,9 @@ library(knitr)
 The **Global Baseline Estimate** is a simple, non-personalized recommender. It predicts how a
 person would rate a movie they have not rated from three numbers:
 
-$$
-\text{estimate} = \text{overall average} + \text{movie's difference from average} +
-\text{person's difference from average}
-$$
+> **Estimate** = overall average\
+> &emsp;+ movie's difference from average\
+> &emsp;+ person's difference from average
 
 A movie that most people rate highly gets a boost, and so does a person who tends to give high
 ratings. The movie with the highest estimate among those a person has not rated is recommended to

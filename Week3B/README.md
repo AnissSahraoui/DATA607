@@ -23,7 +23,7 @@ with `dplyr` on all 3,546 rows.
 | `window_functions.html` | Rendered output |
 | `sql/01_create_table.sql` | `CREATE TABLE` for the prices |
 | `sql/02_window_functions.sql` | The window function query |
-| `data/stock_prices.csv` | Daily closing prices from Yahoo Finance: date, ticker, close |
+| `data/stock_prices.csv` | Daily closing prices from Yahoo Finance (read from GitHub by the report) |
 
 ## Reproduce
 

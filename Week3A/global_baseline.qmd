@@ -88,7 +88,11 @@ Pitch Perfect 2?* Its answer is **2.28**.
 
 ```{r}
 #| label: spreadsheet
-spreadsheet <- read_excel("MovieRatings.xlsx", sheet = "MovieRatings") |>
+# read_excel() cannot read from a URL, so download the file from GitHub first
+spreadsheet_file <- tempfile(fileext = ".xlsx")
+download.file("https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week3A/MovieRatings.xlsx", spreadsheet_file, mode = "wb", quiet = TRUE)
+
+spreadsheet <- read_excel(spreadsheet_file, sheet = "MovieRatings") |>
   pivot_longer(-Critic, names_to = "movie", values_to = "rating") |>
   rename(person = Critic)
 
@@ -119,12 +123,16 @@ generously, such as Dan and Xingjia, get higher predicted ratings.
 
 ## Loading the data from SQL
 
-My Week 2 ratings are stored in a SQLite database. The query returns every person–movie pair, with
+My Week 2 ratings are stored in a SQLite database in my GitHub repository. The query returns every person–movie pair, with
 `NA` where there is no rating.
 
 ```{r}
 #| label: load-sql
-con <- dbConnect(SQLite(), "../Week2/movie_ratings.sqlite")
+# Download the Week 2 database from GitHub, then connect to it
+db_file <- tempfile(fileext = ".sqlite")
+download.file("https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week2/movie_ratings.sqlite", db_file, mode = "wb", quiet = TRUE)
+
+con <- dbConnect(SQLite(), db_file)
 
 my_ratings <- dbGetQuery(con, "
   SELECT u.name AS person, m.title AS movie, r.rating

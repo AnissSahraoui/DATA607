@@ -40,12 +40,15 @@ way `GROUP BY` does.
 The data is the daily closing price of three stocks, **Apple (AAPL)**, **Microsoft (MSFT)** and
 **Amazon (AMZN)**, from January 3, 2022 (the first trading day of 2022) to September 18, 2026. It was
 downloaded from Yahoo Finance and saved as
-[`data/stock_prices.csv`](data/stock_prices.csv), so the results do not change when new prices come
-in. Prices are adjusted for stock splits, such as Amazon's 20-for-1 split in 2022.
+[`data/stock_prices.csv`](data/stock_prices.csv) in my GitHub repository, so the results do not
+change when new prices come in. The code below reads the file directly from GitHub. Prices are adjusted for stock splits, such as Amazon's 20-for-1 split in 2022.
 
 ```{r}
 #| label: load-csv
-prices <- read_csv("data/stock_prices.csv", show_col_types = FALSE)
+prices <- read_csv(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week3B/data/stock_prices.csv",
+  show_col_types = FALSE
+)
 
 prices |>
   group_by(ticker) |>

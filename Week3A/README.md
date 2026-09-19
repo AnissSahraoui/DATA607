@@ -22,7 +22,7 @@ A Global Baseline Estimate movie recommender in R, applied to my Week 2 movie ra
 | `global_baseline.html` | Rendered output |
 | `MovieRatings.xlsx` | Course spreadsheet with the algorithm |
 
-The ratings are read from `../Week2/movie_ratings.sqlite`.
+The spreadsheet and the Week 2 ratings database (`Week2/movie_ratings.sqlite`) are read directly from GitHub.
 
 ## Reproduce
 

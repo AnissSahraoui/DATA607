@@ -2267,14 +2267,17 @@ vertical-align: -.125em;
 </section>
 <section id="the-data" class="level1" data-number="2">
 <h1 data-number="2"><span class="header-section-number">2</span> The Data</h1>
-<p>The data is the daily closing price of three stocks, <strong>Apple (AAPL)</strong>, <strong>Microsoft (MSFT)</strong> and <strong>Amazon (AMZN)</strong>, from January 3, 2022 (the first trading day of 2022) to September 18, 2026. It was downloaded from Yahoo Finance and saved as <a href="data/stock_prices.csv"><code>data/stock_prices.csv</code></a>, so the results do not change when new prices come in. Prices are adjusted for stock splits, such as Amazon’s 20-for-1 split in 2022.</p>
+<p>The data is the daily closing price of three stocks, <strong>Apple (AAPL)</strong>, <strong>Microsoft (MSFT)</strong> and <strong>Amazon (AMZN)</strong>, from January 3, 2022 (the first trading day of 2022) to September 18, 2026. It was downloaded from Yahoo Finance and saved as <a href="data/stock_prices.csv"><code>data/stock_prices.csv</code></a> in my GitHub repository, so the results do not change when new prices come in. The code below reads the file directly from GitHub. Prices are adjusted for stock splits, such as Amazon’s 20-for-1 split in 2022.</p>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>prices <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(<span class="st">&quot;data/stock_prices.csv&quot;</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>prices <span class="sc">|&gt;</span></span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(ticker) <span class="sc">|&gt;</span></span>
-<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">trading_days =</span> <span class="fu">n</span>(), <span class="at">first_day =</span> <span class="fu">min</span>(date), <span class="at">last_day =</span> <span class="fu">max</span>(date),</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>            <span class="at">lowest_close =</span> <span class="fu">min</span>(close), <span class="at">highest_close =</span> <span class="fu">max</span>(close))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>prices <span class="ot">&lt;-</span> <span class="fu">read_csv</span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="st">&quot;https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week3B/data/stock_prices.csv&quot;</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">show_col_types =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>prices <span class="sc">|&gt;</span></span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(ticker) <span class="sc">|&gt;</span></span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summarise</span>(<span class="at">trading_days =</span> <span class="fu">n</span>(), <span class="at">first_day =</span> <span class="fu">min</span>(date), <span class="at">last_day =</span> <span class="fu">max</span>(date),</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>            <span class="at">lowest_close =</span> <span class="fu">min</span>(close), <span class="at">highest_close =</span> <span class="fu">max</span>(close))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="cell-output-display">
 <div class="kable-table">
 <table class="caption-top table table-sm table-striped small">

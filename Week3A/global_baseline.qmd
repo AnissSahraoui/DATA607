@@ -1,0 +1,249 @@
+---
+title: "Global Baseline Estimate Recommender"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(readxl)
+library(DBI)
+library(RSQLite)
+library(knitr)
+```
+
+# Overview
+
+The **Global Baseline Estimate** is a simple, non-personalized recommender. It predicts how a
+person would rate a movie they have not rated from three numbers:
+
+$$
+\text{estimate} = \text{overall average} + \text{movie's difference from average} +
+\text{person's difference from average}
+$$
+
+A movie that most people rate highly gets a boost, and so does a person who tends to give high
+ratings. The movie with the highest estimate among those a person has not rated is recommended to
+them.
+
+In this assignment I write the algorithm as an R function, check it against the course
+spreadsheet, and apply it to the movie ratings I collected in Week 2.
+
+# The Function
+
+The function takes a table with one row per person and movie, where `rating` is `NA` if the person
+has not rated the movie. Averages only use the ratings that exist.
+
+```{r}
+#| label: function
+global_baseline <- function(ratings) {
+  observed <- ratings |> filter(!is.na(rating))
+
+  overall_avg <- mean(observed$rating)
+
+  movie_diff <- observed |>
+    group_by(movie) |>
+    summarise(movie_diff = mean(rating) - overall_avg)
+
+  person_diff <- observed |>
+    group_by(person) |>
+    summarise(person_diff = mean(rating) - overall_avg)
+
+  ratings |>
+    left_join(movie_diff, by = "movie") |>
+    left_join(person_diff, by = "person") |>
+    mutate(
+      overall_avg = overall_avg,
+      estimate = overall_avg + movie_diff + person_diff,
+      # the formula can go past the 1-5 scale, so keep the displayed rating inside it
+      predicted_rating = pmin(pmax(estimate, 1), 5)
+    )
+}
+
+recommend <- function(estimates) {
+  estimates |>
+    filter(is.na(rating)) |>
+    group_by(person) |>
+    slice_max(estimate, n = 1, with_ties = FALSE) |>
+    ungroup() |>
+    select(person, recommended_movie = movie, predicted_rating)
+}
+```
+
+# Checking Against the Spreadsheet
+
+The course spreadsheet `MovieRatings.xlsx` works through one example: *how would Param rate
+Pitch Perfect 2?* Its answer is **2.28**.
+
+```{r}
+#| label: spreadsheet
+spreadsheet <- read_excel("MovieRatings.xlsx", sheet = "MovieRatings") |>
+  pivot_longer(-Critic, names_to = "movie", values_to = "rating") |>
+  rename(person = Critic)
+
+spreadsheet_estimates <- global_baseline(spreadsheet)
+
+spreadsheet_estimates |>
+  filter(person == "Param", movie == "PitchPerfect2") |>
+  select(person, movie, overall_avg, movie_diff, person_diff, estimate) |>
+  mutate(across(where(is.numeric), ~ round(.x, 2)))
+```
+
+The function gives the same **2.28** as the spreadsheet: an overall average of 3.93, minus 1.22
+because Pitch Perfect 2 is rated below average, minus 0.43 because Param rates below average.
+
+Because the spreadsheet has many unrated movies, it also shows what the recommender is for. Each
+critic's recommendation is the unrated movie with the highest estimate:
+
+```{r}
+#| label: spreadsheet-recs
+recommend(spreadsheet_estimates) |>
+  mutate(predicted_rating = round(predicted_rating, 2))
+```
+
+Deadpool is recommended most often, because it has the highest movie average. Critics who rate
+generously, such as Dan and Xingjia, get higher predicted ratings.
+
+# My Movie Ratings
+
+## Loading the data from SQL
+
+My Week 2 ratings are stored in a SQLite database. The query returns every person–movie pair, with
+`NA` where there is no rating.
+
+```{r}
+#| label: load-sql
+con <- dbConnect(SQLite(), "../Week2/movie_ratings.sqlite")
+
+my_ratings <- dbGetQuery(con, "
+  SELECT u.name AS person, m.title AS movie, r.rating
+  FROM users u
+  CROSS JOIN movies m
+  LEFT JOIN ratings r
+         ON r.user_id = u.user_id AND r.movie_id = m.movie_id
+") |>
+  as_tibble()
+
+dbDisconnect(con)
+
+my_ratings |>
+  pivot_wider(names_from = movie, values_from = rating)
+```
+
+## Global Baseline on my data
+
+```{r}
+#| label: my-estimates
+my_estimates <- global_baseline(my_ratings)
+
+my_estimates |> distinct(movie, movie_diff) |> arrange(desc(movie_diff)) |>
+  mutate(movie_diff = round(movie_diff, 2))
+
+my_estimates |> distinct(person, person_diff)
+
+sum(is.na(my_ratings$rating))
+```
+
+The overall average is **4.5**. There are two problems:
+
+- **Nothing to recommend.** All six friends rated all six movies, so there are no unrated movies.
+- **Every person's difference is 0.** Each friend's average rating is exactly 4.5, the same as the
+  overall average, so every estimate is just the movie's average.
+
+If a new friend joined, the Global Baseline would recommend **F1** or **Wicked: For Good**, the two
+movies with the highest averages.
+
+# Testing by Hiding Ratings
+
+To still test the recommender on my data, I hide one rating at a time, recalculate everything from
+the other 35 ratings, and estimate the hidden one. The error is the difference between the estimate
+and the real rating.
+
+I compare three versions of the formula, to see what each part adds:
+
+- **Overall average** only
+- **Overall average + movie's difference**
+- **Full Global Baseline** (overall average + movie's difference + person's difference)
+
+```{r}
+#| label: leave-one-out
+hidden <- map_dfr(seq_len(nrow(my_ratings)), \(i) {
+  with_one_hidden <- my_ratings
+  with_one_hidden$rating[i] <- NA
+
+  est <- global_baseline(with_one_hidden)[i, ]
+
+  tibble(
+    person       = my_ratings$person[i],
+    movie        = my_ratings$movie[i],
+    real_rating  = my_ratings$rating[i],
+    overall_only = est$overall_avg,
+    with_movie   = est$overall_avg + est$movie_diff,
+    full         = est$estimate
+  )
+})
+
+rmse <- function(estimate, actual) sqrt(mean((estimate - actual)^2))
+
+hidden |>
+  summarise(
+    `Overall average only`   = rmse(overall_only, real_rating),
+    `+ movie's difference`   = rmse(with_movie, real_rating),
+    `Full Global Baseline`   = rmse(full, real_rating)
+  ) |>
+  pivot_longer(everything(), names_to = "Formula", values_to = "RMSE") |>
+  mutate(RMSE = round(RMSE, 2))
+```
+
+RMSE (root mean squared error) is the typical size of the error, in rating points. Lower is
+better.
+
+```{r}
+#| label: fig-errors
+#| fig-cap: "Estimate vs real rating for each hidden rating, using the full Global Baseline."
+#| fig-height: 3.5
+ggplot(hidden, aes(x = full, y = real_rating, color = movie)) +
+  geom_abline(linetype = "dashed", color = "grey60") +
+  geom_jitter(width = 0, height = 0.08, size = 3, alpha = 0.8) +
+  scale_color_manual(values = c("#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#4a3aa7")) +
+  scale_x_continuous(limits = c(2.5, 5.5)) +
+  scale_y_continuous(limits = c(2.5, 5.5)) +
+  labs(x = "Estimate", y = "Real rating", color = NULL) +
+  theme_minimal(base_size = 12)
+```
+
+Points on the dashed line are perfect estimates.
+
+- **Adding the movie's difference helps a lot.** The error drops from 0.79 to 0.35. Movies really
+  are rated differently: Weapons is always a 3, and F1 is always a 5.
+- **Adding the person's difference makes it slightly worse** (0.41). My friends all rate the same on
+  average, so there is no real person effect to find. Hiding a rating also moves that person's
+  average in the wrong direction: hiding one of a friend's high ratings makes them look like a
+  harsher rater, which pulls the estimate down.
+- The biggest errors come from Friends 5 and 6, the two whose ratings differ from the rest.
+
+# Conclusion
+
+- My R function reproduces the course spreadsheet's result of **2.28** for Param and Pitch
+  Perfect 2.
+- On the spreadsheet data, which has many unrated movies, it recommends a movie to each critic, most
+  often Deadpool.
+- On my survey data there are no unrated movies, so there is nothing to recommend. A new viewer
+  would be recommended **F1** or **Wicked: For Good**.
+- Hiding ratings shows that the movie part of the formula does most of the work on my data. The
+  person part only helps when people rate differently, which my friends do not.
+
+To get a more useful recommender, I would survey more people, especially people who have not seen
+every movie.

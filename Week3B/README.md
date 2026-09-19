@@ -40,3 +40,8 @@ sqlite3 prices.sqlite < sql/01_create_table.sql
 sqlite3 prices.sqlite ".import --csv --skip 1 data/stock_prices.csv stock_prices"
 sqlite3 -header -column prices.sqlite < sql/02_window_functions.sql
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/sql-window-functions
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week3B

@@ -52,3 +52,4 @@ Home Win / Draw / Away Win.
 - [Week 2: SQL and R, Movie Ratings](Week2/)
 - [Week 2B: Evaluating Classification Model Performance](Week2B/)
 - [Week 3A: Global Baseline Estimate](Week3A/)
+- [Week 3B: SQL Window Functions](Week3B/)

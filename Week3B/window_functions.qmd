@@ -1,0 +1,227 @@
+---
+title: "SQL Window Functions: Stock Price Averages"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(DBI)
+library(RSQLite)
+library(knitr)
+```
+
+# Overview
+
+This assignment uses SQL **window functions** to calculate two averages of daily stock prices:
+
+- **Year-to-date average:** the average closing price from the start of the year up to each day.
+- **Six-day moving average:** the average of each day's closing price and the five trading days
+  before it.
+
+Both are calculated separately for each stock. A window function is what makes this possible: it
+calculates a value for every row from a "window" of related rows, without collapsing the rows the
+way `GROUP BY` does.
+
+# The Data
+
+The data is the daily closing price of three stocks, **Apple (AAPL)**, **Microsoft (MSFT)** and
+**Amazon (AMZN)**, from January 3, 2022 (the first trading day of 2022) to September 18, 2026. It was
+downloaded from Yahoo Finance and saved as
+[`data/stock_prices.csv`](data/stock_prices.csv), so the results do not change when new prices come
+in. Prices are adjusted for stock splits, such as Amazon's 20-for-1 split in 2022.
+
+```{r}
+#| label: load-csv
+prices <- read_csv("data/stock_prices.csv", show_col_types = FALSE)
+
+prices |>
+  group_by(ticker) |>
+  summarise(trading_days = n(), first_day = min(date), last_day = max(date),
+            lowest_close = min(close), highest_close = max(close))
+```
+
+# Loading the Data into SQL
+
+The prices go into a SQLite table with one row per stock per day. The primary key
+`(ticker, date)` makes sure no day is loaded twice for the same stock.
+
+```{sql}
+--| label: create-table
+--| eval: false
+--| code: !expr readLines("sql/01_create_table.sql")
+```
+
+```{r}
+#| label: load-sql
+# Run a .sql file one statement at a time
+run_sql_file <- function(con, path) {
+  statements <- readLines(path) |>
+    str_remove("--.*$") |>
+    paste(collapse = "\n") |>
+    str_split_1(";") |>
+    str_trim()
+  walk(statements[statements != ""], \(s) dbExecute(con, s))
+}
+
+con <- dbConnect(SQLite(), ":memory:")
+run_sql_file(con, "sql/01_create_table.sql")
+
+dbAppendTable(con, "stock_prices", prices |> mutate(date = as.character(date)))
+
+dbGetQuery(con, "SELECT ticker, COUNT(*) AS rows FROM stock_prices GROUP BY ticker")
+```
+
+# The Window Functions
+
+This is the full query, saved as [`sql/02_window_functions.sql`](sql/02_window_functions.sql):
+
+```{sql}
+--| label: show-query
+--| eval: false
+--| code: !expr readLines("sql/02_window_functions.sql")
+```
+
+How each part works:
+
+| Part | What it does |
+|---|---|
+| `PARTITION BY ticker` | Calculates each stock separately |
+| `strftime('%Y', date)` | Also splits by year, so the year-to-date average restarts every January |
+| `ORDER BY date` | Puts each stock's days in order |
+| `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW` | Year-to-date: every day so far this year |
+| `ROWS BETWEEN 5 PRECEDING AND CURRENT ROW` | Six-day: today and the five trading days before it |
+
+Two details:
+
+- The moving average counts **trading days**, not calendar days. Weekends and holidays have no
+  price, so six trading days usually span eight calendar days.
+- The first five days of each stock do not have six days of history yet. `COUNT(close) OVER six_days`
+  counts the days in the window, and the moving average is left empty until there are six.
+
+```{r}
+#| label: run-query
+query <- paste(readLines("sql/02_window_functions.sql"), collapse = "\n")
+
+results <- dbGetQuery(con, query) |>
+  as_tibble() |>
+  mutate(date = as.Date(date))
+
+dbDisconnect(con)
+
+results |> filter(ticker == "AAPL") |> head(8)
+```
+
+The first row's year-to-date average equals its closing price, because it is the only day so far.
+The moving average starts on the sixth row.
+
+The year-to-date average restarts on the first trading day of each year:
+
+```{r}
+#| label: year-restart
+results |>
+  filter(ticker == "AAPL", date >= "2022-12-28", date <= "2023-01-05")
+```
+
+On January 3, 2023, the year-to-date average drops back to that day's price. The moving average
+does not restart, because the five days before it are still the most recent trading days.
+
+# Checking the Results
+
+To make sure the SQL is correct, I calculate the same averages a second way, with `dplyr` in R, and
+compare them.
+
+```{r}
+#| label: check
+check <- prices |>
+  group_by(ticker, year = year(date)) |>
+  arrange(date, .by_group = TRUE) |>
+  mutate(ytd_check = cummean(close)) |>
+  group_by(ticker) |>
+  mutate(ma_check = (close + lag(close, 1) + lag(close, 2) +
+                     lag(close, 3) + lag(close, 4) + lag(close, 5)) / 6) |>
+  ungroup()
+
+comparison <- results |>
+  inner_join(check, by = c("ticker", "date"))
+
+tibble(
+  rows_compared             = nrow(comparison),
+  largest_ytd_difference    = max(abs(comparison$ytd_avg - comparison$ytd_check)),
+  largest_6day_difference   = max(abs(comparison$moving_avg_6d - comparison$ma_check), na.rm = TRUE),
+  empty_6day_values_match   = all(is.na(comparison$moving_avg_6d) == is.na(comparison$ma_check))
+)
+```
+
+The two methods agree on all 3,546 rows: the largest difference is 0, and the empty moving-average values are in the same places.
+
+# Results
+
+## Latest values
+
+```{r}
+#| label: latest
+results |>
+  group_by(ticker) |>
+  slice_max(date) |>
+  ungroup() |>
+  mutate(across(c(close, ytd_avg, moving_avg_6d), ~ round(.x, 2)),
+         `close vs YTD avg` = scales::percent((close - ytd_avg) / ytd_avg, 0.1))
+```
+
+## 2026 so far
+
+```{r}
+#| label: fig-2026
+#| fig-cap: "Daily closing price in 2026 with the six-day moving average and the year-to-date average."
+#| fig-height: 6.5
+results |>
+  filter(date >= "2026-01-01") |>
+  select(date, ticker, `Closing price` = close, `Six-day moving average` = moving_avg_6d,
+         `Year-to-date average` = ytd_avg) |>
+  pivot_longer(-c(date, ticker), names_to = "series", values_to = "price") |>
+  mutate(series = factor(series, levels = c("Closing price", "Six-day moving average",
+                                            "Year-to-date average"))) |>
+  ggplot(aes(x = date, y = price, color = series, linewidth = series)) +
+  geom_line() +
+  facet_wrap(~ ticker, ncol = 1, scales = "free_y") +
+  scale_color_manual(values = c("Closing price" = "grey70",
+                                "Six-day moving average" = "#2a78d6",
+                                "Year-to-date average" = "#eb6834"), name = NULL) +
+  scale_linewidth_manual(values = c(0.5, 0.9, 0.9), guide = "none") +
+  scale_y_continuous(labels = scales::dollar) +
+  labs(x = NULL, y = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(legend.position = "top", strip.text = element_text(face = "bold", hjust = 0))
+```
+
+The chart shows what each average is good for:
+
+- The **six-day moving average** follows the price closely but smooths out day-to-day noise.
+- The **year-to-date average** moves slowly and becomes more stable as the year goes on, because each
+  new day is a smaller share of the total. A price above the year-to-date average means the stock is
+  trading higher than it has on average this year.
+
+# Conclusion
+
+- One SQL query with two window functions calculates both averages for all three stocks and all
+  years at once, without any loops.
+- `PARTITION BY` keeps the stocks separate, and adding the year to the partition makes the
+  year-to-date average restart each January.
+- The `ROWS BETWEEN` frame controls how many days go into each average.
+- The results match the same calculation done with `dplyr` in R.
+
+The same query would work for any number of stocks, or for any other daily time series, by changing
+only the table.

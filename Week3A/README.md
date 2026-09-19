@@ -31,3 +31,8 @@ Requires R with `tidyverse`, `readxl`, `DBI`, `RSQLite`, and Quarto.
 ```bash
 quarto render global_baseline.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/global-baseline
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week3A

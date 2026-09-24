@@ -53,3 +53,4 @@ Home Win / Draw / Away Win.
 - [Week 2B: Evaluating Classification Model Performance](Week2B/)
 - [Week 3A: Global Baseline Estimate](Week3A/)
 - [Week 3B: SQL Window Functions](Week3B/)
+- [Project 1: Chess Tournament Results](Week4/)

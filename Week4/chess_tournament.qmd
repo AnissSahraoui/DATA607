@@ -1,0 +1,300 @@
+---
+title: "Project 1: Chess Tournament Results"
+subtitle: "Turning a formatted text file into a tidy CSV"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(knitr)
+```
+
+# Overview
+
+The file `tournmentinfo.txt` holds the results of a 7-round chess tournament as a formatted text
+table, the kind meant to be read by a person rather than by software. The goal of this project is
+to turn it into a CSV file with one row per player and these five columns:
+
+- Player's name
+- Player's state
+- Total number of points
+- Player's pre-tournament rating
+- Average pre-tournament rating of the opponents they played
+
+The last column is the interesting one. It is not in the file: each player's opponents are listed
+only by pair number, so their ratings have to be looked up and averaged. For the first player,
+Gary Hua, the expected result is `Gary Hua, ON, 6.0, 1794, 1605`.
+
+# The Raw File
+
+The file is read from my GitHub repository, so this document runs on any machine.
+
+```{r}
+#| label: read-file
+raw_lines <- read_lines(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week4/tournmentinfo.txt"
+)
+
+length(raw_lines)
+```
+
+```{r}
+#| label: excerpt
+#| class-output: default
+cat(raw_lines[1:7], sep = "\n")
+```
+
+The structure repeats every three lines: a row of dashes, then **two lines per player**.
+
+- **First line:** pair number, name, total points, and the seven round results. Each result is a
+  letter and the pair number of the opponent, so `W  39` means a win against player 39.
+- **Second line:** state, USCF ID, the pre-tournament rating and post-tournament rating, and the
+  colour played each round.
+
+Three things make the parsing less than routine:
+
+- The two pieces of information for one player sit on **different lines**.
+- Opponents are given by **pair number**, so a player's opponents' ratings can only be found by
+  looking them up elsewhere in the same file.
+- Some rounds are not games against an opponent. A bye or an unplayed round (`H`, `U`, `X`, `B`)
+  has no pair number, so it must not count as a game.
+
+# Parsing
+
+## Splitting the file into one row per player
+
+I keep only the data lines, drop the two header lines, and then take the odd-numbered lines as the
+first line of each player and the even-numbered lines as the second.
+
+```{r}
+#| label: split-lines
+data_lines <- raw_lines |>
+  keep(\(line) str_detect(line, fixed("|"))) |>   # drop the rows of dashes
+  tail(-2)                                        # drop the two header lines
+
+first_lines  <- data_lines[c(TRUE, FALSE)]
+second_lines <- data_lines[c(FALSE, TRUE)]
+
+c(data_lines = length(data_lines), players = length(first_lines))
+```
+
+## Pulling out each field
+
+Both lines are split on the `|` character, which makes every field a column I can pick by position.
+
+```{r}
+#| label: extract
+field <- function(lines, i) {
+  str_split(lines, fixed("|")) |> map_chr(i) |> str_trim()
+}
+
+players <- tibble(
+  pair         = as.integer(field(first_lines, 1)),
+  name         = str_to_title(field(first_lines, 2)),
+  total_points = as.numeric(field(first_lines, 3)),
+  state        = field(second_lines, 1),
+
+  # "15445895 / R: 1794   ->1817" or "15142253 / R: 1641P17->1657P24"
+  # The pre-rating is the first number after "R:". The "P17" on some ratings marks a
+  # provisional rating and is not part of the number, so \\d+ stops before it.
+  pre_rating   = field(second_lines, 2) |> str_extract("(?<=R:)\\s*\\d+") |> as.integer(),
+
+  # Fields 4 to 10 of the first line are the seven rounds. Taking the digits gives the
+  # opponent's pair number, and gives NA for a bye or an unplayed round.
+  opponents    = map(first_lines, \(line) {
+    str_split_1(line, fixed("|"))[4:10] |> str_extract("\\d+") |> as.integer()
+  })
+)
+
+players |> select(pair, name, state, total_points, pre_rating) |> head(5)
+```
+
+## Averaging the opponents' ratings
+
+With every player's rating in hand, each player's opponents are looked up by pair number. The
+average uses only the rounds that were actually played, which is what the project asks for: the
+ratings are divided by the number of games played.
+
+```{r}
+#| label: opponent-average
+rating_of <- set_names(players$pre_rating, players$pair)
+
+players <- players |>
+  mutate(
+    games_played     = map_int(opponents, \(o) sum(!is.na(o))),
+    opponent_ratings = map(opponents, \(o) unname(rating_of[as.character(o[!is.na(o)])])),
+    avg_opponent_rating = map_dbl(opponent_ratings, mean) |> round()
+  )
+
+players |>
+  select(name, total_points, pre_rating, games_played, avg_opponent_rating) |>
+  head(5)
+```
+
+# Checking the Results
+
+## The example from the project
+
+```{r}
+#| label: check-gary
+gary <- players |> filter(pair == 1)
+
+tibble(
+  name              = gary$name,
+  state             = gary$state,
+  total_points      = gary$total_points,
+  pre_rating        = gary$pre_rating,
+  opponent_ratings  = paste(gary$opponent_ratings[[1]], collapse = ", "),
+  games_played      = gary$games_played,
+  average           = gary$avg_opponent_rating
+)
+```
+
+This matches the project exactly: the same seven opponent ratings, and an average of **1605**.
+
+## Checks across all players
+
+```{r}
+#| label: checks
+check_results <- list(
+  n_players            = nrow(players),
+  pair_numbers_1_to_64 = identical(players$pair, 1:64),
+  missing_values       = sum(is.na(players$name), is.na(players$state),
+                             is.na(players$total_points), is.na(players$pre_rating),
+                             is.na(players$avg_opponent_rating)),
+  states               = paste(sort(unique(players$state)), collapse = ", "),
+  rounds_per_player    = paste(range(map_int(players$opponents, length)), collapse = "-"),
+  games_played_range   = paste(range(players$games_played), collapse = "-"),
+  # every game has two players, so the pair numbers should appear in each other's lists
+  games_are_mutual     = {
+    games <- players |> select(pair, opponents) |> unnest(opponents) |> drop_na()
+    all(map2_lgl(games$pair, games$opponents,
+                 \(p, o) p %in% games$opponents[games$pair == o]))
+  }
+)
+
+tibble(check = names(check_results),
+       result = map_chr(check_results, as.character))
+```
+
+All 64 players are present with no missing values. The last check is the strongest one: for every
+game, the two players list each other, which means no opponent number was misread.
+
+## Rounds that were not games
+
+Every player has seven rounds, but not everyone played seven games.
+
+```{r}
+#| label: byes
+players |>
+  count(games_played, name = "players") |>
+  arrange(desc(games_played))
+```
+
+```{r}
+#| label: bye-example
+players |>
+  filter(games_played < 7) |>
+  select(name, total_points, games_played, avg_opponent_rating) |>
+  head(5)
+```
+
+These players had a bye or an unplayed round. Their average uses only the games they played, so a
+bye neither counts as an opponent with a rating of zero nor drags the average down.
+
+# The CSV File
+
+```{r}
+#| label: write-csv
+tournament_results <- players |>
+  mutate(
+    # written with one decimal place, so a score of 6 appears as "6.0" as in the project example
+    total_points = sprintf("%.1f", total_points)
+  ) |>
+  select(
+    player_name             = name,
+    player_state            = state,
+    total_points            = total_points,
+    player_pre_rating       = pre_rating,
+    avg_opponent_pre_rating = avg_opponent_rating
+  )
+
+write_csv(tournament_results, "tournament_results.csv")
+
+head(tournament_results, 10)
+```
+
+The file [`tournament_results.csv`](tournament_results.csv) has `r nrow(tournament_results)` rows
+and `r ncol(tournament_results)` columns, and is ready to load into a SQL database. The first line
+of the file is:
+
+```{r}
+#| label: csv-first-line
+read_lines("tournament_results.csv", n_max = 2) |> cat(sep = "\n")
+```
+
+# A Look at the Results
+
+The CSV is the deliverable, but the data answers a couple of questions easily now.
+
+```{r}
+#| label: fig-rating-points
+#| fig-cap: "Pre-tournament rating against points scored. Each dot is a player."
+#| fig-height: 3.8
+ggplot(players, aes(x = pre_rating, y = total_points)) +
+  geom_smooth(method = "lm", se = FALSE, color = "grey70", linewidth = 0.8) +
+  geom_point(size = 2.6, alpha = 0.8, color = "#2a78d6") +
+  scale_y_continuous(breaks = 0:7) +
+  labs(x = "Pre-tournament rating", y = "Points scored (out of 7)") +
+  theme_minimal(base_size = 12)
+```
+
+```{r}
+#| label: correlation
+cor(players$pre_rating, players$total_points) |> round(2)
+```
+
+Rating and score are strongly related, as expected, but the fit is far from perfect. The players
+furthest above the line did better than their rating suggested:
+
+```{r}
+#| label: overperformers
+model <- lm(total_points ~ pre_rating, data = players)
+
+players |>
+  mutate(expected_points = round(predict(model), 1),
+         points_above_expected = round(total_points - expected_points, 1)) |>
+  slice_max(points_above_expected, n = 5, with_ties = FALSE) |>
+  select(name, pre_rating, total_points, expected_points, points_above_expected)
+```
+
+Aditya Bajaj stands out: the third-highest score in the tournament from the 26th-highest rating.
+That is also visible in the file, where his rating rises from 1384 to 1640.
+
+# Conclusion
+
+The file's structure is regular, which is what makes parsing it possible: every player occupies
+exactly two lines, and every field sits between the same pair of `|` characters. The work was in
+three details:
+
+- Joining the two lines that describe one player into a single row.
+- Reading the pre-rating as digits only, so that a provisional rating such as `1641P17` is read as
+  1641.
+- Counting only real games, so byes and unplayed rounds do not become opponents.
+
+The results were checked in three ways: the project's own example for Gary Hua reproduces exactly,
+no values are missing for any of the 64 players, and every game appears in both players' round
+lists.

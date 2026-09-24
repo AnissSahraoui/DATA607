@@ -50,3 +50,8 @@ Requires R with `tidyverse`, and Quarto.
 ```bash
 quarto render chess_tournament.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/chess-tournament
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week4

@@ -1,0 +1,333 @@
+---
+title: "Tidying and Transforming Data: Airline Arrival Delays"
+subtitle: "Why Alaska beats AM West in every city but loses overall"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(scales)
+library(knitr)
+
+col_alaska  <- "#2a78d6"
+col_amwest  <- "#eb6834"
+theme_report <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# Overview
+
+This assignment takes a small table of airline arrival records, tidies it in R, and compares the
+two airlines' delay rates. The table counts **on time** and **delayed** arrivals for two airlines,
+ALASKA and AM WEST, across five west-coast cities.
+
+The interesting part is the result. Comparing the airlines overall gives the opposite answer to
+comparing them city by city, and the reason is worth understanding before trusting any summary
+statistic.
+
+# The Data File
+
+I recreated the table as a CSV in exactly the shape it was given, including the blank cells. The
+airline name appears only on its first row, and an empty row separates the two airlines.
+
+```{r}
+#| label: show-raw
+#| class-output: default
+read_lines("https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week5A/data/flights.csv") |>
+  cat(sep = "\n")
+```
+
+The file is read from my GitHub repository, so this document runs on any machine.
+
+```{r}
+#| label: read-raw
+raw <- read_csv(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week5A/data/flights.csv",
+  show_col_types = FALSE,
+  name_repair = "unique_quiet"
+)
+
+raw
+```
+
+This is not tidy data. The first two columns have no names, the airline is missing on three rows,
+one row is entirely empty, and the five cities are spread across columns instead of being values of
+a single variable.
+
+# Tidying
+
+## Filling in the missing airline names
+
+`fill()` carries the last non-missing value downward, which is exactly what the layout implies: the
+rows under ALASKA belong to ALASKA. The empty separator row is dropped by removing rows with no
+status.
+
+```{r}
+#| label: fill
+filled <- raw |>
+  rename(airline = 1, status = 2) |>
+  fill(airline) |>
+  filter(!is.na(status))
+
+filled
+```
+
+## Wide to long
+
+`pivot_longer()` turns the five city columns into one `city` column, giving one row per airline,
+city and status.
+
+```{r}
+#| label: longer
+long <- filled |>
+  pivot_longer(
+    cols = -c(airline, status),
+    names_to = "city",
+    values_to = "flights"
+  )
+
+head(long, 6)
+```
+
+## One row per airline and city
+
+For comparing delays it is more useful to have on-time and delayed counts side by side, so I pivot
+the two statuses back into columns and calculate the totals and percentages.
+
+```{r}
+#| label: tidy
+flights <- long |>
+  mutate(status = str_replace(status, "on time", "on_time")) |>
+  pivot_wider(names_from = status, values_from = flights) |>
+  mutate(
+    total      = on_time + delayed,
+    delay_rate = delayed / total
+  )
+
+flights |> mutate(delay_rate = percent(delay_rate, 0.1))
+```
+
+```{r}
+#| label: check
+tibble(
+  rows               = nrow(flights),
+  flights_in_table   = sum(flights$total),
+  counts_match_input = sum(flights$total) == sum(raw[, 3:7], na.rm = TRUE),
+  missing_values     = sum(is.na(flights))
+)
+```
+
+Every count from the original table is accounted for, with nothing lost in the reshaping.
+
+# Comparing the Airlines Overall
+
+```{r}
+#| label: overall
+overall <- flights |>
+  group_by(airline) |>
+  summarise(
+    on_time    = sum(on_time),
+    delayed    = sum(delayed),
+    total      = sum(total),
+    .groups    = "drop"
+  ) |>
+  mutate(delay_rate = delayed / total)
+
+overall |> mutate(delay_rate = percent(delay_rate, 0.1))
+```
+
+```{r}
+#| label: fig-overall
+#| fig-cap: "Overall percentage of arrivals that were delayed."
+#| fig-height: 2.4
+ggplot(overall, aes(x = delay_rate, y = fct_rev(airline), fill = airline)) +
+  geom_col(width = 0.55) +
+  geom_text(aes(label = percent(delay_rate, 0.1)), hjust = 1.15,
+            color = "white", fontface = "bold", size = 4) +
+  scale_fill_manual(values = c(ALASKA = col_alaska, `AM WEST` = col_amwest), guide = "none") +
+  scale_x_continuous(labels = percent_format(), expand = expansion(mult = c(0, 0.05))) +
+  labs(x = "Delayed arrivals", y = NULL) +
+  theme_report +
+  theme(panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: overall-values
+#| include: false
+rate <- \(a) overall |> filter(airline == a) |> pull(delay_rate)
+```
+
+**Overall, AM WEST looks better.** `r percent(rate("AM WEST"), 0.1)` of its arrivals were delayed,
+against `r percent(rate("ALASKA"), 0.1)` for ALASKA, a gap of
+`r percent(rate("ALASKA") - rate("AM WEST"), 0.1)`. Percentages matter here: AM WEST recorded
+`r comma(sum(overall$total[overall$airline == "AM WEST"]))` arrivals against ALASKA's
+`r comma(sum(overall$total[overall$airline == "ALASKA"]))`, so comparing raw counts of delays would
+say more about airline size than about punctuality.
+
+# Comparing the Airlines City by City
+
+```{r}
+#| label: by-city
+by_city <- flights |>
+  select(airline, city, delay_rate) |>
+  pivot_wider(names_from = airline, values_from = delay_rate) |>
+  mutate(difference = `AM WEST` - ALASKA)
+
+by_city |>
+  mutate(across(where(is.numeric), ~ percent(.x, 0.1)))
+```
+
+```{r}
+#| label: fig-by-city
+#| fig-cap: "Percentage of arrivals delayed, by city. ALASKA is lower in all five."
+#| fig-height: 3.4
+flights |>
+  mutate(city = fct_reorder(city, delay_rate)) |>
+  ggplot(aes(x = delay_rate, y = city, fill = airline)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.62) +
+  geom_text(aes(label = percent(delay_rate, 0.1)),
+            position = position_dodge(width = 0.7), hjust = -0.12, size = 3.2) +
+  scale_fill_manual(values = c(ALASKA = col_alaska, `AM WEST` = col_amwest), name = NULL) +
+  scale_x_continuous(labels = percent_format(), limits = c(0, 0.34),
+                     expand = expansion(mult = c(0, 0.02))) +
+  labs(x = "Delayed arrivals", y = NULL) +
+  theme_report +
+  theme(legend.position = "top", panel.grid.major.y = element_blank())
+```
+
+**City by city, the answer reverses.** ALASKA has a lower delay rate in **every one of the five
+cities**. The gap ranges from `r percent(min(by_city$difference), 0.1)` in Phoenix to
+`r percent(max(by_city$difference), 0.1)` in San Francisco. Both airlines struggle in the same
+places: San Francisco and Seattle are the worst for both, and Phoenix is the best for both.
+
+# The Discrepancy, and Why It Happens
+
+## Describing it
+
+Alaska is better in Los Angeles, Phoenix, San Diego, San Francisco and Seattle, yet worse overall.
+Nothing is wrong with the arithmetic: both statements are true of the same data. This reversal is
+known as **Simpson's paradox**.
+
+## Explaining it
+
+The overall rate is not a plain average of the five cities. It is an average **weighted by how many
+flights each airline runs in each city**, and the two airlines fly very different routes.
+
+```{r}
+#| label: share
+share <- flights |>
+  group_by(airline) |>
+  mutate(share_of_flights = total / sum(total)) |>
+  ungroup()
+
+share |>
+  select(airline, city, total, share_of_flights) |>
+  pivot_wider(names_from = airline, values_from = c(total, share_of_flights)) |>
+  mutate(across(starts_with("share"), ~ percent(.x, 0.1)))
+```
+
+```{r}
+#| label: fig-share
+#| fig-cap: "Where each airline flies, as a share of its own arrivals. The cities are ordered by how delay-prone they are overall."
+#| fig-height: 3.2
+city_order <- flights |>
+  group_by(city) |>
+  summarise(rate = sum(delayed) / sum(total)) |>
+  arrange(rate) |>
+  pull(city)
+
+share |>
+  mutate(city = factor(city, levels = city_order)) |>
+  ggplot(aes(x = city, y = share_of_flights, fill = airline)) +
+  geom_col(position = position_dodge(width = 0.7), width = 0.62) +
+  geom_text(aes(label = percent(share_of_flights, 1)),
+            position = position_dodge(width = 0.7), vjust = -0.4, size = 3.2) +
+  scale_fill_manual(values = c(ALASKA = col_alaska, `AM WEST` = col_amwest), name = NULL) +
+  scale_y_continuous(labels = percent_format(), limits = c(0, 0.85),
+                     expand = expansion(mult = c(0, 0.02))) +
+  labs(x = "Cities, least to most delay-prone", y = "Share of the airline's arrivals") +
+  theme_report +
+  theme(legend.position = "top", panel.grid.major.x = element_blank())
+```
+
+```{r}
+#| label: share-values
+#| include: false
+s <- \(a, c) share |> filter(airline == a, city == c) |> pull(share_of_flights)
+phx_rate  <- flights |> filter(city == "Phoenix") |> summarise(r = sum(delayed)/sum(total)) |> pull(r)
+sea_rate  <- flights |> filter(city == "Seattle") |> summarise(r = sum(delayed)/sum(total)) |> pull(r)
+```
+
+This is the whole explanation:
+
+- **AM WEST concentrates on Phoenix**, its hub, which takes `r percent(s("AM WEST", "Phoenix"), 0.1)`
+  of its arrivals. Phoenix is the easiest airport in this data, with a `r percent(phx_rate, 0.1)`
+  delay rate across both airlines.
+- **ALASKA concentrates on Seattle**, its hub, which takes `r percent(s("ALASKA", "Seattle"), 0.1)`
+  of its arrivals, plus another `r percent(s("ALASKA", "San Francisco"), 0.1)` in San Francisco.
+  Those are two of the three most delay-prone cities here; Seattle alone runs at
+  `r percent(sea_rate, 0.1)`.
+
+So AM WEST's overall figure is dominated by its easiest airport, while ALASKA's is dominated by its
+hardest ones. AM WEST looks better overall not because it handles any city better, but because it
+flies where delays are rare.
+
+## Removing the route effect
+
+A fair comparison asks what AM WEST's overall rate would be if it flew the same mix of cities as
+ALASKA. That is a weighted average of AM WEST's own city rates, using ALASKA's flight counts as the
+weights.
+
+```{r}
+#| label: standardised
+weights <- flights |> filter(airline == "ALASKA") |> select(city, alaska_flights = total)
+
+standardised <- flights |>
+  filter(airline == "AM WEST") |>
+  left_join(weights, by = "city") |>
+  summarise(rate = sum(delay_rate * alaska_flights) / sum(alaska_flights)) |>
+  pull(rate)
+
+tibble(
+  comparison = c("ALASKA, actual",
+                 "AM WEST, actual",
+                 "AM WEST, if it flew ALASKA's mix of cities"),
+  delay_rate = percent(c(rate("ALASKA"), rate("AM WEST"), standardised), 0.1)
+)
+```
+
+Once both airlines are put on the same routes, AM WEST's delay rate rises from
+`r percent(rate("AM WEST"), 0.1)` to **`r percent(standardised, 0.1)`**, well above ALASKA's
+`r percent(rate("ALASKA"), 0.1)`. The city-by-city comparison is the honest one, and the overall
+figure was measuring where each airline flies rather than how well it flies.
+
+# Conclusions
+
+- **Tidying mattered.** The source table buried the airline name in blank cells and spread the
+  cities across columns. `fill()` and `pivot_longer()` turned it into one row per airline, city and
+  status, after which every comparison was a single `group_by()`.
+- **Percentages, not counts.** AM WEST recorded nearly twice as many arrivals as ALASKA, so counts
+  of delays would have been misleading on their own.
+- **The two comparisons disagree.** ALASKA is better in all five cities, yet worse overall. The
+  overall rate is weighted by route mix, and AM WEST runs
+  `r percent(s("AM WEST", "Phoenix"), 0.1)` of its flights through the least delay-prone airport in
+  the data.
+- **ALASKA is the better airline here.** Standardising to a common mix of cities confirms it: AM
+  WEST would run at `r percent(standardised, 0.1)` on ALASKA's routes, against ALASKA's
+  `r percent(rate("ALASKA"), 0.1)`.
+
+The practical lesson is that an aggregate can reverse the truth of every group inside it. Whenever
+groups are pooled, it is worth asking what the pooling is weighted by.

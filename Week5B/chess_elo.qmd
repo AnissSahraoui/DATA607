@@ -1,0 +1,354 @@
+---
+title: "Chess Elo Calculations"
+subtitle: "Expected scores, and who beat them"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| include: false
+library(tidyverse)
+library(knitr)
+
+col_over  <- "#1baf7a"
+col_under <- "#c0392b"
+theme_report <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# Overview
+
+In the Project 1 tournament, each player's score depends on how strong their opponents were. A
+player who scores 4 out of 7 against weak opposition has done worse than one who scores 3 against
+strong opposition. The Elo system makes that comparison concrete: from the rating difference in
+each game, it calculates the score a player was **expected** to achieve.
+
+This report calculates every player's expected score, compares it with what they actually scored,
+and lists the five players who most overperformed and the five who most underperformed.
+
+# The Elo Expected Score
+
+For a single game, a player's expected score against one opponent is:
+
+$$
+E = \frac{1}{1 + 10^{(R_{\text{opponent}} - R_{\text{player}})/400}}
+$$
+
+$E$ is a number between 0 and 1, read as the share of a point the player is expected to take.
+A player's expected score for the tournament is the sum of $E$ across the games they played.
+
+**Source:** [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_system), Wikipedia, which
+gives this logistic form of Arpad Elo's expected-score formula. The same formula appears in the
+[FIDE Handbook](https://handbook.fide.com/chapter/B022022) rating regulations, where the expectancy
+is published as a lookup table of rating differences.
+
+```{r}
+#| label: formula
+expected_score <- function(player_rating, opponent_rating) {
+  1 / (1 + 10^((opponent_rating - player_rating) / 400))
+}
+
+tibble(rating_advantage = c(-400, -200, -100, 0, 100, 200, 400)) |>
+  mutate(expected_score = round(expected_score(rating_advantage, 0), 3))
+```
+
+The table shows the shape of the formula: equal ratings give 0.5, a 100-point advantage gives
+0.64, and a 200-point advantage gives 0.76. These match the figures quoted in the source.
+
+# The Data
+
+The tournament file is the same one I parsed for Project 1, read from my GitHub repository. The
+parsing is unchanged, except that I now keep the **result letter** in each round as well as the
+opponent's number, because the result is what the expected score gets compared against.
+
+```{r}
+#| label: parse
+raw_lines <- read_lines(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week4/tournmentinfo.txt"
+)
+
+data_lines  <- raw_lines |> keep(\(line) str_detect(line, fixed("|"))) |> tail(-2)
+first_lines  <- data_lines[c(TRUE, FALSE)]
+second_lines <- data_lines[c(FALSE, TRUE)]
+
+field <- function(lines, i) str_split(lines, fixed("|")) |> map_chr(i) |> str_trim()
+
+players <- tibble(
+  pair       = as.integer(field(first_lines, 1)),
+  name       = str_to_title(field(first_lines, 2)),
+  points     = as.numeric(field(first_lines, 3)),
+  pre_rating = field(second_lines, 2) |> str_extract("(?<=R:)\\s*\\d+") |> as.integer(),
+  post_rating = field(second_lines, 2) |> str_extract("(?<=->)\\s*\\d+") |> as.integer()
+)
+
+rounds <- map_dfr(seq_along(first_lines), \(i) {
+  cells <- str_split_1(first_lines[i], fixed("|"))[4:10]
+  tibble(
+    pair     = players$pair[i],
+    round    = 1:7,
+    result   = str_trim(str_extract(cells, "[A-Z]")),
+    opponent = as.integer(str_extract(cells, "\\d+"))
+  )
+})
+
+head(rounds, 8)
+```
+
+## Which rounds were real games
+
+Only `W`, `L` and `D` have an opponent number. The other letters are byes and unplayed rounds,
+which have no opponent and therefore no rating difference.
+
+```{r}
+#| label: codes
+rounds |>
+  count(result, has_opponent = !is.na(opponent)) |>
+  mutate(meaning = case_when(
+    result == "W" ~ "Win",
+    result == "L" ~ "Loss",
+    result == "D" ~ "Draw",
+    result == "B" ~ "Full-point bye",
+    result == "H" ~ "Half-point bye",
+    result == "U" ~ "Unplayed",
+    result == "X" ~ "Forfeit win"
+  ))
+```
+
+Byes are excluded from both sides of the comparison. A bye awards points without a game, so
+including it in the actual score while the expected score has nothing to match it against would
+make every player with a bye look like an overperformer.
+
+```{r}
+#| label: games
+games <- rounds |>
+  filter(!is.na(opponent)) |>
+  left_join(players |> select(pair, pre_rating), by = "pair") |>
+  left_join(players |> select(opponent = pair, opponent_rating = pre_rating), by = "opponent") |>
+  mutate(
+    actual   = case_when(result == "W" ~ 1, result == "D" ~ 0.5, result == "L" ~ 0),
+    expected = expected_score(pre_rating, opponent_rating)
+  )
+
+games |>
+  select(pair, round, opponent, pre_rating, opponent_rating, actual, expected) |>
+  mutate(expected = round(expected, 3)) |>
+  head(7)
+```
+
+# Expected vs Actual
+
+```{r}
+#| label: summarise
+performance <- games |>
+  group_by(pair) |>
+  summarise(
+    games_played   = n(),
+    actual_score   = sum(actual),
+    expected_score = sum(expected),
+    .groups = "drop"
+  ) |>
+  left_join(players, by = "pair") |>
+  mutate(
+    difference    = actual_score - expected_score,
+    rating_change = post_rating - pre_rating
+  )
+
+performance |>
+  select(name, pre_rating, games_played, actual_score, expected_score, difference) |>
+  mutate(across(c(expected_score, difference), ~ round(.x, 2))) |>
+  head(5)
+```
+
+## Checking the calculation
+
+In any single game, the two players' expected scores add up to 1, because one player's advantage is
+the other's disadvantage. Across the whole tournament, then, the total expected score must equal
+the total actual score, which is simply the number of games played.
+
+```{r}
+#| label: check
+n_rows   <- nrow(games)
+actual   <- sum(performance$actual_score)
+expected <- sum(performance$expected_score)
+
+tibble(
+  player_game_rows = n_rows,
+  games            = n_rows / 2,
+  total_actual     = actual,
+  total_expected   = round(expected, 6),
+  totals_match     = isTRUE(all.equal(actual, expected))
+)
+```
+
+The totals match exactly, and the 408 player-game rows are the 204 games counted from both sides.
+
+```{r}
+#| label: byes-note
+performance |>
+  filter(points != actual_score) |>
+  select(name, tournament_points = points, actual_score, games_played) |>
+  head(5)
+```
+
+These are players whose official total includes bye points. Their `actual_score` here counts only
+real games, which is what the expected score can be compared against.
+
+# Who Overperformed and Underperformed
+
+```{r}
+#| label: top5
+top_over <- performance |>
+  slice_max(difference, n = 5) |>
+  select(name, pre_rating, games_played, actual_score, expected_score, difference)
+
+top_over |> mutate(across(c(expected_score, difference), ~ round(.x, 2)))
+```
+
+```{r}
+#| label: bottom5
+top_under <- performance |>
+  slice_min(difference, n = 5) |>
+  select(name, pre_rating, games_played, actual_score, expected_score, difference)
+
+top_under |> mutate(across(c(expected_score, difference), ~ round(.x, 2)))
+```
+
+```{r}
+#| label: fig-difference
+#| fig-cap: "Actual score minus expected score for all 64 players, sorted. The highlighted points are the five biggest over- and underperformers listed above."
+#| fig-height: 4
+highlight <- c(top_over$name, top_under$name)
+
+performance |>
+  mutate(
+    name  = fct_reorder(name, difference),
+    group = case_when(name %in% top_over$name  ~ "Overperformed",
+                      name %in% top_under$name ~ "Underperformed",
+                      TRUE ~ "Other")
+  ) |>
+  ggplot(aes(x = difference, y = name, color = group)) +
+  geom_vline(xintercept = 0, color = "grey60") +
+  geom_segment(aes(x = 0, xend = difference, yend = name), linewidth = 0.6) +
+  geom_point(size = 2) +
+  scale_color_manual(values = c(Overperformed = col_over, Underperformed = col_under,
+                                Other = "grey75"), name = NULL) +
+  # 64 names will not fit legibly on this axis; the ten highlighted players are
+  # named in the tables above, and the two extremes are labelled directly
+  annotate("text", x = 4.0, y = 55, label = "Aditya Bajaj, +4.05",
+           hjust = 1, size = 3.4, color = col_over) +
+  annotate("text", x = -2.7, y = 9, label = "Loren Schwiebert, -2.78",
+           hjust = 0, size = 3.4, color = col_under) +
+  labs(x = "Actual score minus expected score (points)", y = "Players, worst to best") +
+  theme_report +
+  theme(axis.text.y = element_blank(), legend.position = "top",
+        panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: fig-scatter
+#| fig-cap: "Expected score against actual score. Players above the line scored more than their ratings predicted."
+#| fig-height: 4
+performance |>
+  mutate(group = case_when(name %in% top_over$name  ~ "Overperformed",
+                           name %in% top_under$name ~ "Underperformed",
+                           TRUE ~ "Other")) |>
+  ggplot(aes(x = expected_score, y = actual_score, color = group)) +
+  geom_abline(linetype = "dashed", color = "grey60") +
+  geom_point(size = 2.6, alpha = 0.9) +
+  scale_color_manual(values = c(Overperformed = col_over, Underperformed = col_under,
+                                Other = "grey70"), name = NULL) +
+  coord_equal(xlim = c(0, 7), ylim = c(0, 7)) +
+  labs(x = "Expected score", y = "Actual score") +
+  theme_report +
+  theme(legend.position = "top")
+```
+
+## What the lists show
+
+**Aditya Bajaj** is the clearest overperformance in the tournament: rated 1384, he was expected to
+score about 1.95 points from his seven games and scored 6, a difference of **+4.05**. At the other
+end, **Loren Schwiebert**, the second-highest rated player in the field at 1745, was expected to
+score 6.28 and managed 3.5, a difference of **−2.78**.
+
+The two lists are not symmetric, and that is a feature of the formula rather than an accident. A
+strong player can only lose points they were expected to win, so the worst possible underperformance
+is bounded by their expected score. A weak player has almost nothing to lose and a great deal to
+gain, so the overperformance list is dominated by lower-rated players having a good week.
+
+## A sanity check from the file itself
+
+The tournament file also records each player's **post-tournament rating**, which was calculated
+independently by the rating system. If my expected scores are reasonable, players who overperformed
+should have gained rating and players who underperformed should have lost it.
+
+```{r}
+#| label: rating-change
+performance |>
+  summarise(correlation = round(cor(difference, rating_change), 3))
+```
+
+```{r}
+#| label: rating-change-table
+bind_rows(
+  top_over  |> select(name) |> mutate(list = "Overperformed"),
+  top_under |> select(name) |> mutate(list = "Underperformed")
+) |>
+  left_join(performance |> select(name, pre_rating, post_rating, rating_change, difference),
+            by = "name") |>
+  select(list, name, pre_rating, post_rating, rating_change, difference) |>
+  mutate(difference = round(difference, 2))
+```
+
+The correlation is **0.78**, and every one of the ten players moves in the expected direction: all
+five overperformers gained rating, and all five underperformers lost it. This is a genuinely
+independent check, because those post-tournament ratings were in the file before I calculated
+anything.
+
+## One player worth a caveat
+
+```{r}
+#| label: lavalley
+games |>
+  filter(pair == performance$pair[performance$name == "Jacob Alexander Lavalley"]) |>
+  select(round, opponent, opponent_rating, result, actual, expected) |>
+  mutate(expected = round(expected, 4))
+```
+
+Jacob Alexander Lavalley entered rated 377 and won three games against opponents rated 1438, 1163
+and 1283. The formula gives him an expected score of 0.04 points from seven games, so his 3 points
+look like an extraordinary overperformance. The more likely explanation is that his 377 rating was
+simply wrong, or based on too few games to mean anything. The rating system reached the same
+conclusion: his rating jumped 699 points to 1076. Elo measures performance against a rating, so it
+is only as trustworthy as the rating it starts from.
+
+# Conclusions
+
+- Across 204 games, the total expected score equals the total actual score exactly, which confirms
+  the calculation is internally consistent.
+- **The five biggest overperformers** were Aditya Bajaj (+4.05), Zachary James Houghton (+3.13),
+  Anvit Rao (+3.06), Jacob Alexander Lavalley (+2.96) and Stefano Lee (+2.71).
+- **The five biggest underperformers** were Loren Schwiebert (−2.78), George Avery Jones (−2.52),
+  Larry Hodge (−2.40), Jared Ge (−2.01) and Rishi Shetty (−1.59).
+- The official rating changes in the file agree with these results, with a correlation of 0.78 and
+  all ten players moving in the expected direction.
+- Byes had to be excluded from both scores. Had they been left in the actual score, the players who
+  received them would have appeared to overperform by exactly the value of the bye.
+
+# References
+
+- [Elo rating system](https://en.wikipedia.org/wiki/Elo_rating_system), Wikipedia — source of the
+  expected-score formula used here.
+- [FIDE Handbook](https://handbook.fide.com/chapter/B022022), rating regulations — the same
+  expectancy published as a table.
+- Tournament data: [`tournmentinfo.txt`](https://github.com/AnissSahraoui/DATA607/blob/main/Week4/tournmentinfo.txt), from Project 1.

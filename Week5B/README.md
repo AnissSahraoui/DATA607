@@ -60,3 +60,8 @@ Requires R with `tidyverse`, and Quarto.
 ```bash
 quarto render chess_elo.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/chess-elo
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week5B

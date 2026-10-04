@@ -44,3 +44,8 @@ Requires R with `tidyverse` and `scales`, and Quarto.
 ```bash
 quarto render flight_delays.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/airline-delays
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week5A

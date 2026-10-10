@@ -47,3 +47,11 @@ quarto render life_expectancy.qmd
 quarto render electricity_production.qmd
 quarto render state_unemployment.qmd
 ```
+
+## Submission links
+
+| Dataset | `.qmd` on GitHub | Published on RPubs |
+| --- | --- | --- |
+| Life expectancy | [life_expectancy.qmd](https://github.com/AnissSahraoui/DATA607/blob/main/Week6/life_expectancy.qmd) | <https://rpubs.com/benadam0/tidy-life-expectancy> |
+| Electricity production | [electricity_production.qmd](https://github.com/AnissSahraoui/DATA607/blob/main/Week6/electricity_production.qmd) | <https://rpubs.com/benadam0/tidy-electricity-production> |
+| State unemployment | [state_unemployment.qmd](https://github.com/AnissSahraoui/DATA607/blob/main/Week6/state_unemployment.qmd) | <https://rpubs.com/benadam0/tidy-state-unemployment> |

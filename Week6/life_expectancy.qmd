@@ -1,0 +1,315 @@
+---
+title: "Project 2 — Data Tidying: Life Expectancy by Country"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| code-fold: false
+library(tidyverse)
+library(knitr)
+
+# Shared styling, used across all three Project 2 reports
+accent    <- "#2a78d6"
+accent_2  <- "#eb6834"
+theme_p2  <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# Data Source
+
+This dataset comes from the Discussion 5A post **"Life Expectancy by Country — World Bank"** by
+Mohd Afwan Shaikh. The post describes the World Bank's *Life expectancy at birth, total (years)*
+indicator, in which each country is a row and each year is a separate column, and asks:
+
+> "I would like to compare life expectancy across different countries and examine how it has
+> changed over time. I could also investigate which countries experienced the greatest improvements
+> and how life expectancy changed before and after the COVID-19 pandemic."
+
+**Source:** World Bank, indicator `SP.DYN.LE00.IN`
+(<https://data.worldbank.org/indicator/SP.DYN.LE00.IN>).
+
+**How it was obtained:** I pulled the indicator from the World Bank API for 2000–2023, kept only
+sovereign countries and territories (dropping the World Bank's aggregate rows such as "World" and
+"Arab World", which are sums of other rows and would be double counting), and saved the result in
+the World Bank's own wide layout as
+[`data/life_expectancy_wide.csv`](data/life_expectancy_wide.csv). That raw file is committed to
+GitHub and is read directly from there below, so this document runs in a clean session on any
+machine.
+
+# Data Structure Before Tidying
+
+```{r}
+#| label: import
+#| code-fold: false
+raw_life <- read_csv(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week6/data/life_expectancy_wide.csv",
+  show_col_types = FALSE
+)
+
+dim(raw_life)
+```
+
+```{r}
+#| label: structure
+names(raw_life)
+```
+
+```{r}
+#| label: sample
+raw_life |> select(1:8) |> slice_head(n = 5)
+```
+
+The file has **`r nrow(raw_life)` rows and `r ncol(raw_life)` columns**: two identifier columns and
+24 year columns.
+
+It is untidy for one clear reason: **`year` is a variable, but it is stored in the column headings
+rather than in a column.** Each row also holds 24 separate observations instead of one. In tidy
+form, every row should be one country in one year, with a single `life_expectancy` value.
+
+# Transformation Steps
+
+```{r}
+#| label: tidy
+#| code-fold: false
+life <- raw_life |>
+  # 1. Reshape wide to long: the 24 year columns become two columns, year and value.
+  pivot_longer(
+    cols      = -c(`Country Name`, `Country Code`),
+    names_to  = "year",
+    values_to = "life_expectancy"
+  ) |>
+  # 2. Rename to a consistent snake_case convention. The raw names use spaces and
+  #    title case, which force back-ticks everywhere in downstream code.
+  rename(
+    country      = `Country Name`,
+    country_code = `Country Code`
+  ) |>
+  # 3. Normalize types: year arrives as text because it came from column names.
+  mutate(year = as.integer(year)) |>
+  arrange(country, year)
+
+glimpse(life)
+```
+
+**Missing values.** The brief asks for a documented decision, so the first step is to measure the
+problem rather than assume it:
+
+```{r}
+#| label: missing
+#| code-fold: false
+life |>
+  summarise(
+    rows              = n(),
+    missing_values    = sum(is.na(life_expectancy)),
+    countries         = n_distinct(country),
+    years             = n_distinct(year),
+    complete_series   = sum(!is.na(life_expectancy)) == n()
+  )
+```
+
+There are **no missing values**: all `r nrow(life)` country-year combinations are present. That is
+unusual for World Bank data and worth stating explicitly, because it means no imputation or
+row-dropping decision is needed here. Had values been missing, I would have kept them as `NA`
+rather than filling them, since an interpolated life expectancy is not an observation.
+
+Two consistency checks on the values themselves:
+
+```{r}
+#| label: sanity
+#| code-fold: false
+life |>
+  summarise(
+    min_value      = min(life_expectancy),
+    max_value      = max(life_expectancy),
+    implausible    = sum(life_expectancy < 20 | life_expectancy > 100),
+    duplicate_rows = sum(duplicated(across(c(country, year))))
+  )
+```
+
+Every value falls in a plausible range and no country-year appears twice, so the reshaping neither
+dropped nor duplicated observations.
+
+# Analytical Methods
+
+The post asks four questions. Each is answered from the tidy table only:
+
+1. **How life expectancy changed over time** — the unweighted mean across countries, by year.
+2. **Which countries improved most** — the change from 2000 to 2023, ranked.
+3. **Before and after COVID-19** — the change from 2019 to 2021, and how many countries had
+   returned to their 2019 level by 2023.
+4. **How countries compare** — the spread of values in 2000 against 2023.
+
+Averages here are **unweighted across countries**: each country counts once, regardless of
+population. This answers "how are countries doing" rather than "how is the average person doing",
+which is the question the post asks. A population-weighted mean would be dominated by China and
+India.
+
+## Change over time
+
+```{r}
+#| label: over-time
+global <- life |>
+  group_by(year) |>
+  summarise(mean_life_expectancy = mean(life_expectancy), .groups = "drop")
+
+global |>
+  filter(year %in% c(2000, 2010, 2019, 2020, 2021, 2022, 2023)) |>
+  mutate(mean_life_expectancy = round(mean_life_expectancy, 1)) |>
+  kable(col.names = c("Year", "Mean life expectancy (years)"))
+```
+
+```{r}
+#| label: fig-global
+#| fig-cap: "Mean life expectancy across 217 countries, 2000–2023. The shaded band marks the COVID-19 period."
+#| fig-height: 3.4
+ggplot(global, aes(x = year, y = mean_life_expectancy)) +
+  annotate("rect", xmin = 2020, xmax = 2021, ymin = -Inf, ymax = Inf,
+           fill = accent_2, alpha = 0.12) +
+  geom_line(linewidth = 1, color = accent) +
+  geom_point(size = 1.8, color = accent) +
+  labs(title = "Life expectancy rose for two decades, then fell sharply in 2020–21",
+       x = "Year", y = "Mean life expectancy (years)") +
+  theme_p2
+```
+
+The mean rose from **`r round(global$mean_life_expectancy[global$year == 2000], 1)` years in 2000**
+to **`r round(global$mean_life_expectancy[global$year == 2019], 1)` in 2019**, fell to
+**`r round(global$mean_life_expectancy[global$year == 2021], 1)` in 2021**, then recovered to
+**`r round(global$mean_life_expectancy[global$year == 2023], 1)` by 2023**. The pandemic erased
+roughly a decade of progress in two years, and the recovery took two more.
+
+## Greatest improvements
+
+```{r}
+#| label: gains
+change <- life |>
+  filter(year %in% c(2000, 2019, 2021, 2023)) |>
+  select(country, year, life_expectancy) |>
+  pivot_wider(names_from = year, values_from = life_expectancy, names_prefix = "y") |>
+  mutate(
+    gain_2000_2023 = y2023 - y2000,
+    covid_change   = y2021 - y2019
+  )
+
+change |>
+  slice_max(gain_2000_2023, n = 5) |>
+  transmute(Country = country,
+            `2000` = round(y2000, 1),
+            `2023` = round(y2023, 1),
+            `Gain (years)` = round(gain_2000_2023, 1)) |>
+  kable()
+```
+
+```{r}
+#| label: fig-gains
+#| fig-cap: "The ten largest gains in life expectancy, 2000 to 2023."
+#| fig-height: 3.6
+change |>
+  slice_max(gain_2000_2023, n = 10) |>
+  mutate(country = fct_reorder(country, gain_2000_2023)) |>
+  ggplot(aes(x = gain_2000_2023, y = country)) +
+  geom_col(fill = accent, width = 0.65) +
+  geom_text(aes(label = sprintf("+%.1f", gain_2000_2023)), hjust = 1.15,
+            color = "white", fontface = "bold", size = 3.4) +
+  labs(title = "The largest gains are concentrated in sub-Saharan Africa",
+       x = "Years gained, 2000–2023", y = NULL) +
+  theme_p2 +
+  theme(panel.grid.major.y = element_blank())
+```
+
+## The COVID-19 period
+
+```{r}
+#| label: covid
+change |>
+  slice_min(covid_change, n = 5) |>
+  transmute(Country = country,
+            `2019` = round(y2019, 1),
+            `2021` = round(y2021, 1),
+            `Change (years)` = round(covid_change, 1)) |>
+  kable()
+```
+
+```{r}
+#| label: recovery
+recovery <- change |>
+  summarise(
+    countries         = n(),
+    fell_2019_to_2021 = sum(covid_change < 0),
+    recovered_by_2023 = sum(y2023 >= y2019)
+  )
+
+recovery |>
+  kable(col.names = c("Countries", "Fell 2019 to 2021", "Back to 2019 level by 2023"))
+```
+
+## How countries compare
+
+```{r}
+#| label: spread
+life |>
+  filter(year %in% c(2000, 2023)) |>
+  group_by(year) |>
+  summarise(
+    lowest  = round(min(life_expectancy), 1),
+    highest = round(max(life_expectancy), 1),
+    gap     = round(max(life_expectancy) - min(life_expectancy), 1),
+    sd      = round(sd(life_expectancy), 2),
+    .groups = "drop"
+  ) |>
+  kable(col.names = c("Year", "Lowest", "Highest", "Gap (years)", "Std. dev."))
+```
+
+```{r}
+#| label: fig-spread
+#| fig-cap: "Distribution of life expectancy across countries in 2000 and 2023."
+#| fig-height: 3.2
+life |>
+  filter(year %in% c(2000, 2023)) |>
+  mutate(year = factor(year)) |>
+  ggplot(aes(x = life_expectancy, fill = year)) +
+  geom_density(alpha = 0.55, color = NA) +
+  scale_fill_manual(values = c("2000" = accent_2, "2023" = accent), name = NULL) +
+  labs(title = "The distribution shifted right and narrowed",
+       x = "Life expectancy (years)", y = "Density") +
+  theme_p2 +
+  theme(legend.position = "top")
+```
+
+# Conclusions
+
+- **Life expectancy rose, fell, and recovered.** The country average climbed from
+  `r round(global$mean_life_expectancy[global$year == 2000], 1)` years in 2000 to
+  `r round(global$mean_life_expectancy[global$year == 2019], 1)` in 2019, dropped to
+  `r round(global$mean_life_expectancy[global$year == 2021], 1)` in 2021, and reached
+  `r round(global$mean_life_expectancy[global$year == 2023], 1)` in 2023, the highest in the series.
+- **The biggest improvements were in sub-Saharan Africa.** Malawi gained
+  `r sprintf("%.1f", max(change$gain_2000_2023))` years (46.2 to 67.4), with Rwanda, Zambia, Uganda
+  and Angola each gaining more than 18. These are countries recovering from the HIV/AIDS epidemic
+  and very high child mortality, so they had the most ground to make up.
+- **COVID-19 hit Latin America hardest.** Bolivia lost
+  `r sprintf("%.1f", abs(min(change$covid_change)))` years between 2019 and 2021, followed by
+  Paraguay (−5.6), Mexico (−4.8), Guyana (−4.7) and Peru (−4.7).
+  `r recovery$fell_2019_to_2021` of `r recovery$countries` countries declined over that period.
+- **Most, but not all, have recovered.** `r recovery$recovered_by_2023` of `r recovery$countries`
+  countries were back at or above their 2019 level by 2023, leaving
+  `r recovery$countries - recovery$recovered_by_2023` still below it.
+- **Countries are converging.** The gap between the highest and lowest country narrowed from 37.3
+  years in 2000 to 31.9 in 2023, and the standard deviation fell from 9.64 to 7.12. The lowest
+  country in 2023, Nigeria at 54.5 years, is nearly ten years above the lowest in 2000.
+
+The practical lesson for the tidying step is that the single `pivot_longer()` call is what makes
+all of this possible: every question above is a `group_by()` on a column that did not exist in the
+source file.

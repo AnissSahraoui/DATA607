@@ -1,0 +1,354 @@
+---
+title: "Project 2 — Data Tidying: State Unemployment"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| code-fold: false
+library(tidyverse)
+library(knitr)
+
+# Shared styling, used across all three Project 2 reports
+accent   <- "#2a78d6"
+accent_2 <- "#eb6834"
+theme_p2 <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# Data Source
+
+This dataset comes from the Discussion 5A post **"U.S. Bureau of Labor Statistics Table"** by Zaina
+Hassan, who describes the problem with it:
+
+> "I consider this dataset untidy because the dates and measurements are spread across multiple
+> columns and levels of column headings rather than each variable having its own individual column.
+> ... This wide format makes the table fairly easy for a person to read on the webpage, but it would
+> need to be reorganized before it could be easily analyzed in R."
+
+and states the analysis:
+
+> "One analysis I could perform after tidying the dataset would be to compare unemployment rates
+> between states and examine how they change over time. I could also identify which states
+> experienced the largest increases or decreases in unemployment during the time period represented
+> in the table."
+
+**Source:** U.S. Bureau of Labor Statistics, *State and Regional Unemployment*, Table 1:
+"Employment status of the civilian noninstitutional population 16 years of age and over by region,
+division, and state, 2023-24 annual averages"
+(<https://www.bls.gov/news.release/srgune.t01.htm>).
+
+**How it was obtained:** The BLS blocks automated downloads, so I transcribed the published table
+into [`data/state_unemployment_wide.csv`](data/state_unemployment_wide.csv), keeping its original
+structure and formatting. The page uses a two-level header, so each heading pair is joined with a
+pipe: the column under *Civilian labor force → 2023* became `Civilian labor force | 2023`. I also
+kept the thousands separators and the footnote marker exactly as printed, so the cleaning work is
+real rather than done in advance.
+
+I checked the transcription by verifying that *employed + unemployed = civilian labor force* in
+every row, which it does to within one thousand (the table is rounded to thousands).
+
+# Data Structure Before Tidying
+
+```{r}
+#| label: import
+#| code-fold: false
+raw_jobs <- read_csv(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week6/data/state_unemployment_wide.csv",
+  show_col_types = FALSE
+)
+
+dim(raw_jobs)
+```
+
+```{r}
+#| label: structure
+names(raw_jobs)
+```
+
+```{r}
+#| label: sample
+raw_jobs |> slice_head(n = 5) |> select(1:6)
+```
+
+The file has **`r nrow(raw_jobs)` rows and `r ncol(raw_jobs)` columns**, and is untidy in four
+ways:
+
+1. **Two variables sit in each column name**: a measure (population, labor force, employed,
+   unemployed, rate) and a year.
+2. **Each row holds ten observations**, one per measure-year combination.
+3. **Numbers are text**: values such as `266,942` carry thousands separators.
+4. **Rows mix three levels of geography.** The United States total, four regions, nine divisions,
+   the 50 states plus DC, and Puerto Rico all sit in one column. Summing that column would count
+   every person several times over.
+
+```{r}
+#| label: raw-types
+tibble(column = names(raw_jobs), type = map_chr(raw_jobs, ~ class(.x)[1])) |>
+  slice_head(n = 6) |>
+  kable()
+```
+
+# Transformation Steps
+
+```{r}
+#| label: tidy
+#| code-fold: false
+# The region and division names printed in the table's stub column. Listing them
+# explicitly is the only reliable way to tell a region row from a state row.
+regions <- c(
+  "United States",
+  "Northeast", "New England", "Middle Atlantic",
+  "Midwest", "East North Central", "West North Central",
+  "South", "South Atlantic", "East South Central", "West South Central",
+  "West", "Mountain", "Pacific"
+)
+
+jobs <- raw_jobs |>
+  # 1. Rename to snake_case. The first column's name is a sentence in the source.
+  rename(
+    area        = `Region, division, and state`,
+    error_range = `Error range of rate, 2024`
+  ) |>
+  # 2. Reshape wide to long, splitting each "Measure | Year" heading into two
+  #    columns. This is what turns the two-level header into real variables.
+  pivot_longer(
+    cols      = contains("|"),
+    names_to  = c("measure", "year"),
+    names_sep = " \\| ",
+    values_to = "value"
+  ) |>
+  # 3. Normalize types and labels.
+  mutate(
+    value   = as.numeric(str_remove_all(value, ",")),   # "266,942" -> 266942
+    year    = as.integer(year),
+    measure = str_replace_all(str_to_lower(measure), " ", "_"),
+    # 4. Add the geography level that was implicit in the row ordering, so the
+    #    three levels can be separated instead of being summed together.
+    area_type = case_when(
+      area %in% regions ~ "region_or_division",
+      area == "Puerto Rico" ~ "territory",
+      TRUE ~ "state"
+    )
+  )
+
+glimpse(jobs)
+```
+
+```{r}
+#| label: units
+#| code-fold: false
+# Record the units, which the source gives only in a note above the table.
+units <- tribble(
+  ~measure,              ~unit,
+  "population",          "thousands of people",
+  "civilian_labor_force","thousands of people",
+  "employed",            "thousands of people",
+  "unemployed",          "thousands of people",
+  "unemployment_rate",   "percent of labor force"
+)
+
+units |> kable(col.names = c("Measure", "Unit"))
+```
+
+**Missing and inconsistent values.** Two issues appear, and they need different treatment:
+
+```{r}
+#| label: missing
+#| code-fold: false
+jobs |>
+  summarise(
+    rows                   = n(),
+    missing_numeric_values = sum(is.na(value))
+  ) |>
+  kable()
+
+# The error range column is text, and one row carries a footnote marker instead of a range.
+jobs |>
+  distinct(area, error_range) |>
+  filter(str_detect(error_range, "\\(")) |>
+  kable()
+```
+
+Every numeric value is present. The one inconsistency is in `error_range`, where Puerto Rico shows
+`(2)`, a footnote meaning "data not available", rather than a range like `3.9 - 4.1`. I convert that
+marker to a proper `NA` rather than leaving the string in place, because `(2)` is not a value and
+would otherwise be silently treated as one:
+
+```{r}
+#| label: footnote
+#| code-fold: false
+jobs <- jobs |>
+  mutate(error_range = if_else(str_detect(error_range, "\\("), NA_character_, error_range))
+
+sum(is.na(jobs$error_range)) / n_distinct(jobs$measure) / n_distinct(jobs$year)
+```
+
+**A check on the reshaping.** The unemployment rate should equal unemployed divided by labor force.
+Recomputing it from two other columns confirms the long table holds together:
+
+```{r}
+#| label: check
+#| code-fold: false
+jobs |>
+  filter(measure %in% c("unemployed", "civilian_labor_force", "unemployment_rate")) |>
+  pivot_wider(names_from = measure, values_from = value) |>
+  mutate(recomputed = 100 * unemployed / civilian_labor_force,
+         difference = abs(recomputed - unemployment_rate)) |>
+  summarise(
+    rows           = n(),
+    max_difference = round(max(difference), 2),
+    median_difference = round(median(difference), 3)
+  ) |>
+  kable()
+```
+
+The largest gap is 0.17 percentage points and the median is 0.03, which is what rounding to
+thousands of people produces. The published rates are computed from unrounded data, so exact
+agreement is not expected.
+
+# Analytical Methods
+
+The post asks to compare states, look at change over time, and find the largest moves. Because the
+table covers two annual averages (2023 and 2024), "over time" means the change between those two
+years.
+
+All analysis uses the **51 state rows (50 states plus the District of Columbia)**. Region, division
+and national rows are excluded from comparisons and rankings, since they are aggregates of the same
+people; Puerto Rico is excluded because its data comes from a different survey, which the source
+note states explicitly. The national figure is used only as a reference line.
+
+```{r}
+#| label: rates
+#| code-fold: false
+state_rates <- jobs |>
+  filter(area_type == "state", measure == "unemployment_rate") |>
+  select(area, year, rate = value) |>
+  pivot_wider(names_from = year, values_from = rate, names_prefix = "y") |>
+  mutate(change = y2024 - y2023)
+
+us_rate <- jobs |>
+  filter(area == "United States", measure == "unemployment_rate") |>
+  select(year, rate = value)
+
+us_rate |> kable(col.names = c("Year", "U.S. unemployment rate (%)"))
+```
+
+## Comparing states
+
+```{r}
+#| label: extremes
+bind_rows(
+  state_rates |> slice_max(y2024, n = 5) |> mutate(group = "Highest in 2024"),
+  state_rates |> slice_min(y2024, n = 5) |> mutate(group = "Lowest in 2024")
+) |>
+  transmute(Group = group, State = area,
+            `2023 (%)` = y2023, `2024 (%)` = y2024,
+            `Change (pp)` = sprintf("%+.1f", change)) |>
+  kable()
+```
+
+```{r}
+#| label: fig-states
+#| fig-cap: "Unemployment rate by state, 2023 and 2024 annual averages. The dashed line is the 2024 national rate."
+#| fig-height: 7.5
+state_rates |>
+  mutate(area = fct_reorder(area, y2024)) |>
+  ggplot(aes(y = area)) +
+  geom_vline(xintercept = us_rate$rate[us_rate$year == 2024],
+             linetype = "dashed", color = "grey55") +
+  geom_segment(aes(x = y2023, xend = y2024, yend = area), color = "grey70", linewidth = 0.7) +
+  geom_point(aes(x = y2023, color = "2023"), size = 2) +
+  geom_point(aes(x = y2024, color = "2024"), size = 2) +
+  scale_color_manual(values = c("2023" = accent_2, "2024" = accent), name = NULL) +
+  labs(title = "Unemployment rose in almost every state between 2023 and 2024",
+       subtitle = "Dashed line: 2024 national rate of 4.0%",
+       x = "Unemployment rate (%)", y = NULL) +
+  theme_p2 +
+  theme(legend.position = "top", panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 8))
+```
+
+## Largest increases and decreases
+
+```{r}
+#| label: movers
+bind_rows(
+  state_rates |> slice_max(change, n = 5) |> mutate(group = "Largest increases"),
+  state_rates |> arrange(change) |> slice_head(n = 5) |> mutate(group = "Smallest changes")
+) |>
+  transmute(Group = group, State = area,
+            `2023 (%)` = y2023, `2024 (%)` = y2024,
+            `Change (pp)` = sprintf("%+.1f", change)) |>
+  kable()
+```
+
+```{r}
+#| label: direction
+state_rates |>
+  summarise(
+    states          = n(),
+    mean_2023       = round(mean(y2023), 2),
+    mean_2024       = round(mean(y2024), 2),
+    rose            = sum(change > 0),
+    fell            = sum(change < 0),
+    unchanged       = sum(change == 0)
+  ) |>
+  kable(col.names = c("States", "Mean 2023 (%)", "Mean 2024 (%)",
+                      "Rose", "Fell", "Unchanged"))
+```
+
+```{r}
+#| label: fig-change
+#| fig-cap: "Change in unemployment rate from 2023 to 2024, in percentage points."
+#| fig-height: 7.5
+state_rates |>
+  mutate(area = fct_reorder(area, change),
+         direction = if_else(change > 0, "Rose", "Fell or unchanged")) |>
+  ggplot(aes(x = change, y = area, fill = direction)) +
+  geom_col(width = 0.7) +
+  scale_fill_manual(values = c("Rose" = accent_2, "Fell or unchanged" = accent), name = NULL) +
+  labs(title = "Only three states saw unemployment fall",
+       x = "Change in unemployment rate, 2023 to 2024 (percentage points)", y = NULL) +
+  theme_p2 +
+  theme(legend.position = "top", panel.grid.major.y = element_blank(),
+        axis.text.y = element_text(size = 8))
+```
+
+# Conclusions
+
+- **Unemployment rose almost everywhere.** Of the `r nrow(state_rates)` states,
+  `r sum(state_rates$change > 0)` saw their rate rise between 2023 and 2024, only
+  `r sum(state_rates$change < 0)` saw it fall, and `r sum(state_rates$change == 0)` were unchanged.
+  The state average went from `r round(mean(state_rates$y2023), 2)`% to
+  `r round(mean(state_rates$y2024), 2)`%, alongside a national move from 3.6% to 4.0%.
+- **The spread between states is wide.** In 2024 the highest state rate, Nevada at
+  `r max(state_rates$y2024)`%, was more than three times the lowest, South Dakota at
+  `r min(state_rates$y2024)`%. California (5.3%), the District of Columbia (5.2%), Kentucky (5.1%)
+  and Illinois (5.0%) round out the top five, while the Plains and northern New England states sit
+  at the bottom.
+- **The largest increases were not in the states with the highest rates.** Rhode Island rose the
+  most, by `r sprintf("%+.1f", max(state_rates$change))` points, from 3.0% to 4.3%, followed by
+  South Carolina (+1.1) and Colorado (+1.0). All three started below the national average and ended
+  near or above it, so the increase reflects a genuine turn rather than an already-weak labor
+  market getting worse.
+- **The three declines were marginal.** Pennsylvania, Arizona and Delaware each fell by 0.1 points,
+  which is within the error ranges the BLS publishes for these estimates, so they are best read as
+  flat rather than as improvements.
+- **A caution the table itself supplies.** The published error range for 2024 is roughly ±0.2 to
+  ±0.6 points for most states. Differences smaller than that, including every one of the three
+  declines, should not be treated as real changes.
+
+The tidying step is what enabled this: the comparison of 2023 against 2024 requires `year` to be a
+variable, and in the source it existed only as a second row of column headings.

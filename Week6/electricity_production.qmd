@@ -1,0 +1,371 @@
+---
+title: "Project 2 — Data Tidying: Electricity Production by Country"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    code-fold: true
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+#| code-fold: false
+library(tidyverse)
+library(knitr)
+
+# Shared styling, used across all three Project 2 reports
+accent   <- "#2a78d6"
+accent_2 <- "#eb6834"
+theme_p2 <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# Data Source
+
+This dataset comes from the Discussion 5A post **"Total Energy Production by Country"** by Ellie
+Wilser. The post uses Wikipedia's list of countries by electricity production and explains the
+problem with it:
+
+> "The data is arranged with each country as a row and columns representing the different types of
+> electricity generation methods. This data is untidy because of the multi-level headers, such as
+> coal and gas being grouped together under fossil fuels."
+
+The post then asks two questions:
+
+> "1. What country is the most sustainable? (Highest amount of renewables? Lowest amount of
+> fossils? Highest percentage of renewables?)
+> 2. Can the countries be grouped or clustered based on their primary energy type?"
+
+**Source:** Wikipedia, *List of countries by electricity production*
+(<https://en.wikipedia.org/wiki/List_of_countries_by_electricity_production>), which in turn draws
+on Ember's electricity data.
+
+**How it was obtained:** I scraped the first table on that page and wrote it to
+[`data/electricity_production_wide.csv`](data/electricity_production_wide.csv), preserving the wide
+layout. The page uses a two-row header, which a CSV cannot hold directly, so I joined the two levels
+with a pipe: the column under *Fossil fuels → Coal* became `Fossil fuels | Coal`. No information is
+lost, the file stays untidy in exactly the way the post describes, and the tidying step has to split
+those names apart.
+
+# Data Structure Before Tidying
+
+```{r}
+#| label: import
+#| code-fold: false
+raw_power <- read_csv(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week6/data/electricity_production_wide.csv",
+  show_col_types = FALSE
+)
+
+dim(raw_power)
+```
+
+```{r}
+#| label: structure
+names(raw_power)
+```
+
+```{r}
+#| label: sample
+raw_power |> slice_head(n = 5) |> select(1:7)
+```
+
+The file has **`r nrow(raw_power)` rows and `r ncol(raw_power)` columns**. It is untidy in three
+distinct ways:
+
+1. **Two variables are buried in the column names.** `Fossil fuels | Coal` encodes both an energy
+   group and a specific source.
+2. **Generation source is spread across columns** rather than being a value in one column.
+3. **Numbers are stored as text.** Values like `10,579.70` carry thousands separators, so the
+   columns import as character.
+
+There is also a row for `World`, which is the sum of the country rows rather than a country.
+
+```{r}
+#| label: raw-types
+tibble(
+  column = names(raw_power),
+  type   = map_chr(raw_power, ~ class(.x)[1])
+) |>
+  slice_head(n = 6) |>
+  kable()
+```
+
+# Transformation Steps
+
+```{r}
+#| label: tidy
+#| code-fold: false
+power <- raw_power |>
+  # 1. Reshape wide to long. names_sep splits each "Group | Source" heading into
+  #    two columns, which recovers the page's two-level header as real variables.
+  pivot_longer(
+    cols      = contains("|"),
+    names_to  = c("energy_group", "source"),
+    names_sep = " \\| ",
+    values_to = "generation_twh"
+  ) |>
+  # 2. Rename the remaining columns to snake_case for consistency.
+  rename(
+    country       = Location,
+    country_total = `Total (TWh)`,
+    year          = Year
+  ) |>
+  # 3. Convert text to numbers by stripping the thousands separators.
+  mutate(
+    across(c(generation_twh, country_total),
+           ~ as.numeric(str_remove_all(as.character(.x), ","))),
+    year = as.integer(year),
+    # 4. Normalize an ambiguous label: "Other" appears under BOTH groups, meaning
+    #    oil-fired plants in one case and geothermal etc. in the other. Left alone,
+    #    grouping by source would silently merge two different things.
+    source = case_when(
+      energy_group == "Fossil fuels" & source == "Other" ~ "Other fossil",
+      energy_group == "Renewables"   & source == "Other" ~ "Other renewable",
+      TRUE                                               ~ source
+    )
+  )
+
+glimpse(power)
+```
+
+**Missing values.** Blank cells are common in this table:
+
+```{r}
+#| label: missing
+#| code-fold: false
+power |>
+  summarise(
+    rows            = n(),
+    missing_values  = sum(is.na(generation_twh)),
+    pct_missing     = round(100 * mean(is.na(generation_twh)), 1)
+  )
+```
+
+On Wikipedia a blank cell means the country generates **no measurable electricity from that
+source**, not that the value is unknown: a country with no nuclear plants simply has an empty
+nuclear cell. The country totals confirm this reading, since they equal the sum of the non-blank
+entries. I therefore **replace blanks with 0 rather than dropping them**, because dropping the rows
+would make countries look as though they had fewer sources rather than zero output from some.
+
+```{r}
+#| label: fill-zero
+#| code-fold: false
+power <- power |> mutate(generation_twh = replace_na(generation_twh, 0))
+
+# Verify the decision: do the per-source values now add up to the published total?
+power |>
+  group_by(country, country_total) |>
+  summarise(sum_of_sources = sum(generation_twh), .groups = "drop") |>
+  mutate(difference = abs(sum_of_sources - country_total)) |>
+  summarise(
+    countries       = n(),
+    max_difference  = round(max(difference, na.rm = TRUE), 2),
+    within_1_twh    = sum(difference < 1, na.rm = TRUE)
+  ) |>
+  kable()
+```
+
+The sources add to the published total for every row, which confirms that blank means zero.
+
+**Separating countries from the world total.** The `World` row is an aggregate, so including it in
+a country ranking would be double counting. Two countries report zero generation entirely, so they
+carry no mix to analyse and are excluded from percentage questions.
+
+```{r}
+#| label: split-world
+#| code-fold: false
+world <- power |> filter(country == "World")
+
+countries <- power |>
+  filter(country != "World") |>
+  group_by(country) |>
+  mutate(total_generation = sum(generation_twh)) |>
+  ungroup() |>
+  filter(total_generation > 0)
+
+tibble(
+  raw_rows            = nrow(raw_power),
+  world_rows_removed  = 1,
+  zero_output_removed = n_distinct(power$country) - 1 - n_distinct(countries$country),
+  countries_analysed  = n_distinct(countries$country)
+) |>
+  kable()
+```
+
+# Analytical Methods
+
+The post asks about sustainability and about grouping countries by primary energy type. I answer
+them as follows:
+
+- **Sustainability** has three readings in the post, and they give different winners, so I report
+  all three: the largest *absolute* renewable output, the highest *share* of renewables, and the
+  share among countries large enough for the comparison to be meaningful (over 100 TWh).
+- **Grouping** uses each country's **dominant source**: the single source producing the most
+  electricity there. This is a deterministic classification rather than a clustering algorithm, so
+  it needs no random seed and the group labels mean something concrete.
+
+## The world mix, for reference
+
+```{r}
+#| label: world-mix
+world |>
+  mutate(share = 100 * generation_twh / country_total) |>
+  arrange(desc(share)) |>
+  transmute(`Energy group` = energy_group, Source = source,
+            `TWh` = round(generation_twh),
+            `Share of world (%)` = round(share, 1)) |>
+  kable()
+```
+
+## Sustainability, three ways
+
+```{r}
+#| label: sustainability
+mix <- countries |>
+  group_by(country, total_generation) |>
+  summarise(
+    renewable_twh = sum(generation_twh[energy_group == "Renewables"]),
+    fossil_twh    = sum(generation_twh[energy_group == "Fossil fuels"]),
+    nuclear_twh   = sum(generation_twh[energy_group == "Nuclear"]),
+    .groups = "drop"
+  ) |>
+  mutate(
+    pct_renewable = 100 * renewable_twh / total_generation,
+    pct_fossil    = 100 * fossil_twh / total_generation
+  )
+
+mix |>
+  slice_max(renewable_twh, n = 5) |>
+  transmute(Country = country,
+            `Renewable TWh` = round(renewable_twh),
+            `Total TWh` = round(total_generation),
+            `Renewable share (%)` = round(pct_renewable, 1)) |>
+  kable(caption = "Largest renewable output in absolute terms")
+```
+
+```{r}
+#| label: pct-renewable
+mix |>
+  filter(pct_renewable >= 99.5) |>
+  arrange(desc(total_generation)) |>
+  transmute(Country = country,
+            `Total TWh` = round(total_generation, 1),
+            `Renewable share (%)` = round(pct_renewable, 1)) |>
+  kable(caption = "Countries generating essentially all electricity from renewables")
+```
+
+```{r}
+#| label: fig-large
+#| fig-cap: "Renewable share of generation for countries producing more than 100 TWh. Only large producers are shown, because a country generating a few TWh can reach 100% with a single dam."
+#| fig-height: 4.2
+large <- mix |> filter(total_generation > 100)
+
+large |>
+  slice_max(pct_renewable, n = 12) |>
+  mutate(country = fct_reorder(country, pct_renewable)) |>
+  ggplot(aes(x = pct_renewable, y = country)) +
+  geom_col(fill = accent, width = 0.65) +
+  geom_text(aes(label = sprintf("%.0f%%", pct_renewable)), hjust = 1.2,
+            color = "white", fontface = "bold", size = 3.3) +
+  labs(title = "Norway and Brazil lead the large producers on renewable share",
+       subtitle = "Countries generating more than 100 TWh per year",
+       x = "Renewable share of generation (%)", y = NULL) +
+  theme_p2 +
+  theme(panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: most-fossil
+large |>
+  slice_max(pct_fossil, n = 5) |>
+  transmute(Country = country,
+            `Total TWh` = round(total_generation),
+            `Fossil share (%)` = round(pct_fossil, 1)) |>
+  kable(caption = "Most fossil-dependent large producers")
+```
+
+## Grouping countries by dominant source
+
+```{r}
+#| label: dominant
+dominant <- countries |>
+  group_by(country) |>
+  slice_max(generation_twh, n = 1, with_ties = FALSE) |>
+  ungroup() |>
+  select(country, energy_group, source, total_generation)
+
+dominant |>
+  count(source, name = "countries") |>
+  arrange(desc(countries)) |>
+  kable(caption = "Number of countries by their single largest generation source")
+```
+
+```{r}
+#| label: fig-dominant
+#| fig-cap: "Countries grouped by their dominant generation source, coloured by energy group."
+#| fig-height: 3.6
+dominant |>
+  count(energy_group, source, name = "countries") |>
+  mutate(source = fct_reorder(source, countries)) |>
+  ggplot(aes(x = countries, y = source, fill = energy_group)) +
+  geom_col(width = 0.65) +
+  geom_text(aes(label = countries), hjust = -0.3, size = 3.3) +
+  scale_fill_manual(values = c("Fossil fuels" = accent_2, "Renewables" = "#1baf7a",
+                               "Nuclear" = accent), name = NULL) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "Oil and hydro dominate the most countries, for opposite reasons",
+       x = "Number of countries", y = NULL) +
+  theme_p2 +
+  theme(legend.position = "top", panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: group-totals
+dominant |>
+  group_by(energy_group) |>
+  summarise(countries = n(),
+            combined_twh = round(sum(total_generation)),
+            .groups = "drop") |>
+  arrange(desc(countries)) |>
+  kable(col.names = c("Dominant energy group", "Countries", "Their combined output (TWh)"))
+```
+
+# Conclusions
+
+- **"Most sustainable" depends entirely on how it is measured, which is the real finding here.**
+  By absolute renewable output the answer is **China**, at
+  `r round(max(mix$renewable_twh))` TWh, but that is only
+  `r round(mix$pct_renewable[which.max(mix$renewable_twh)], 1)`% of its own generation, because it
+  also burns more coal than any other country. By share, nine countries are effectively 100%
+  renewable, but most are small: the Central African Republic reaches 100% on 0.1 TWh, which is
+  roughly a rounding error in China's total.
+- **Among large producers, Norway is the clearest answer**, at
+  `r round(large$pct_renewable[large$country == "Norway"], 0)`% renewable on 161 TWh, almost
+  entirely hydro, followed by Brazil at
+  `r round(large$pct_renewable[large$country == "Brazil"], 0)`% on 751 TWh. Brazil is arguably the
+  more impressive case, since it sustains that share at nearly five times Norway's scale.
+- **The most fossil-dependent large producers are oil and gas exporters**: Iraq (98.4%), Bangladesh
+  (97.9%) and Saudi Arabia (97.8%) all generate almost nothing from renewables.
+- **Countries do group cleanly by dominant source, into
+  `r n_distinct(dominant$source)` groups.** The two largest are telling opposites: 64 countries run
+  mostly on *other fossil fuels*, which here means oil, and these are overwhelmingly small island
+  and developing states that burn imported diesel; 56 run mostly on *hydro*, usually because
+  geography handed them a river. Only 7 countries are led by wind or solar, which shows how recent
+  those technologies still are at national scale.
+- **Fossil fuels dominate in `r sum(dominant$energy_group == "Fossil fuels")` of the
+  `r nrow(dominant)` countries analysed**, and the world mix is still
+  `r round(100 * sum(world$generation_twh[world$energy_group == "Fossil fuels"]) / world$country_total[1], 1)`%
+  fossil-fired. The countries with the greenest mixes are mostly those with the luck of a large
+  river, not those that have transitioned away from coal.
+
+The tidying step is what made the comparison possible: the renewable share of each country requires
+grouping by `energy_group`, a variable that existed only as a header spanning three columns in the
+source table.

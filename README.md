@@ -56,3 +56,4 @@ Home Win / Draw / Away Win.
 - [Project 1: Chess Tournament Results](Week4/)
 - [Week 5A: Tidying and Transforming Data](Week5A/)
 - [Week 5B: Chess Elo Calculations](Week5B/)
+- [Project 2: Data Tidying and Transformation](Week6/)

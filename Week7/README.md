@@ -49,3 +49,8 @@ Requires R with `tidyverse`, `rvest` and `jsonlite`, and Quarto.
 ```bash
 quarto render books_html_json.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/books-html-json
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week7

@@ -57,3 +57,4 @@ Home Win / Draw / Away Win.
 - [Week 5A: Tidying and Transforming Data](Week5A/)
 - [Week 5B: Chess Elo Calculations](Week5B/)
 - [Project 2: Data Tidying and Transformation](Week6/)
+- [Week 7: Working with HTML and JSON in R](Week7/)

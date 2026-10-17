@@ -1,0 +1,253 @@
+---
+title: "Reading the Same Books from HTML and JSON"
+subtitle: "Loading two hand-written files into R and asking whether they match"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(rvest)
+library(jsonlite)
+library(knitr)
+
+base_url <- "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week7/"
+```
+
+# Overview
+
+The task is to record three books on one subject, write the same information by hand in two
+formats, load each into R, and decide whether the resulting data frames are identical.
+
+The interesting part is the last step. The two files hold the same facts, but HTML and JSON
+represent them differently, so the first comparison fails for reasons that are worth understanding.
+This report shows those differences, fixes each one, and ends with the two frames genuinely
+identical.
+
+# The Three Books
+
+I chose three books on **data science and statistics**. Two of them have multiple authors, which
+satisfies the requirement, and one of those has four. For each book I recorded the title and
+authors plus three further attributes: publication year, publisher, and ISBN.
+
+| Title | Authors | Year |
+|---|---|---|
+| R for Data Science (2nd ed.) | Hadley Wickham, Mine Çetinkaya-Rundel, Garrett Grolemund | 2023 |
+| An Introduction to Statistical Learning (2nd ed.) | Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani | 2021 |
+| The Art of Statistics | David Spiegelhalter | 2019 |
+
+The ISBNs, publishers and years were checked against the Open Library API, and the author list for
+*R for Data Science* against the book's own site, <https://r4ds.hadley.nz>, because Open Library's
+record for that edition lists only two of its three authors.
+
+Both files were written by hand and are stored in my GitHub repository, so they are publicly
+reachable and this document runs anywhere:
+[`books.html`](https://github.com/AnissSahraoui/DATA607/blob/main/Week7/books.html) and
+[`books.json`](https://github.com/AnissSahraoui/DATA607/blob/main/Week7/books.json).
+
+## The HTML file
+
+```{r}
+#| label: show-html
+#| class-output: default
+read_lines(paste0(base_url, "books.html")) |> cat(sep = "\n")
+```
+
+## The JSON file
+
+```{r}
+#| label: show-json
+#| class-output: default
+read_lines(paste0(base_url, "books.json")) |> cat(sep = "\n")
+```
+
+The two files are deliberately not written the same way, because the formats do not work the same
+way. **HTML has no way to express a list inside a cell**, so the authors are one comma-separated
+string. **JSON does**, so the authors are a proper array. That single choice is the main reason the
+two data frames will not match at first.
+
+# Loading the HTML
+
+`rvest` reads the page, selects the table element, and converts it to a data frame.
+
+```{r}
+#| label: load-html
+books_html <- read_html(paste0(base_url, "books.html")) |>
+  html_element("table") |>
+  html_table()
+
+books_html
+```
+
+```{r}
+#| label: html-types
+tibble(column = names(books_html), type = map_chr(books_html, ~ class(.x)[1])) |> kable()
+```
+
+Worth noting: `html_table()` is cleverer than expected. Every value in an HTML file is text, but
+the function inspects each column and converts `Year` to an integer on its own. Only the ISBN stays
+character, correctly, because the hyphens make it non-numeric.
+
+# Loading the JSON
+
+`jsonlite` reads the file and converts the `books` array directly into a data frame.
+
+```{r}
+#| label: load-json
+books_json <- fromJSON(paste0(base_url, "books.json"))$books
+
+books_json
+```
+
+```{r}
+#| label: json-types
+tibble(column = names(books_json), type = map_chr(books_json, ~ class(.x)[1])) |> kable()
+```
+
+Here the `authors` column is a **list**, not a character vector: each element is a vector of one,
+three or four names.
+
+```{r}
+#| label: authors-list
+books_json$authors
+```
+
+# Comparing the Two Data Frames
+
+```{r}
+#| label: compare-identical
+identical(books_html, books_json)
+```
+
+```{r}
+#| label: compare-all-equal
+all.equal(books_html, books_json)
+```
+
+They are **not identical**, and `all.equal()` names exactly why. It returns five messages, but they
+come down to **three underlying differences**, and none is a disagreement about the books
+themselves:
+
+1. **Column names.** The HTML table uses the header text I wrote, `Title`, `Authors`, `Year`, while
+   JSON uses the lowercase keys `title`, `authors`, `year`. Same five columns, different spelling.
+2. **The authors column.** Character in one, a list in the other, which is the structural
+   difference between the formats.
+3. **Object class.** `html_table()` returns a tibble; `fromJSON()` returns a base data frame. This
+   accounts for the two `Attributes: Component "class"` messages, since a tibble carries the class
+   vector `c("tbl_df", "tbl", "data.frame")` against a plain `"data.frame"`. `identical()` compares
+   attributes, so this alone would make it `FALSE` even if the contents matched.
+
+```{r}
+#| label: show-diffs
+tibble(
+  difference    = c("Column names", "Authors column type", "Object class"),
+  from_html     = c(paste(names(books_html), collapse = ", "),
+                    class(books_html$Authors)[1],
+                    class(books_html)[1]),
+  from_json     = c(paste(names(books_json), collapse = ", "),
+                    class(books_json$authors)[1],
+                    class(books_json)[1])
+) |>
+  kable()
+```
+
+It is also worth checking what did *not* differ. The values themselves agree, including the
+non-ASCII character in "Çetinkaya-Rundel", which survived both the HTML and the JSON round trip:
+
+```{r}
+#| label: values-agree
+tibble(
+  check = c("Rows", "Titles match", "Years match", "ISBNs match", "Non-ASCII name preserved"),
+  result = c(
+    as.character(nrow(books_html) == nrow(books_json)),
+    as.character(identical(books_html$Title, books_json$title)),
+    as.character(identical(books_html$Year, books_json$year)),
+    as.character(identical(books_html$ISBN, books_json$isbn)),
+    as.character(grepl("Çetinkaya-Rundel", books_html$Authors[1]) &
+                 any(grepl("Çetinkaya-Rundel", books_json$authors[[1]])))
+  )
+) |>
+  kable()
+```
+
+# Reconciling the Differences
+
+Each difference has a decision attached to it.
+
+```{r}
+#| label: reconcile
+# 1. Column names: lowercase the HTML names to match the JSON keys. JSON keys are
+#    the better target because they are already consistent snake_case.
+html_tidy <- books_html |>
+  rename_with(tolower)
+
+# 2. Authors: collapse the JSON list into one comma-separated string, matching the
+#    HTML. I flatten JSON rather than splitting HTML because the goal here is to
+#    compare like with like; see the note below on which form is actually better.
+json_tidy <- books_json |>
+  mutate(authors = map_chr(authors, ~ paste(.x, collapse = ", ")))
+
+# 3. Object class: compare both as plain data frames, so the tibble class does not
+#    by itself cause a mismatch.
+html_tidy <- as.data.frame(html_tidy)
+json_tidy <- as.data.frame(json_tidy)
+
+# Column order is not guaranteed to match either, so align it explicitly.
+json_tidy <- json_tidy[, names(html_tidy)]
+
+str(html_tidy)
+str(json_tidy)
+```
+
+```{r}
+#| label: compare-again
+all.equal(html_tidy, json_tidy)
+```
+
+```{r}
+#| label: identical-again
+identical(html_tidy, json_tidy)
+```
+
+After the three fixes the two data frames are **identical**, which confirms that the files always
+held the same information. The disagreement was entirely about representation.
+
+```{r}
+#| label: final-frame
+html_tidy |> kable()
+```
+
+# Conclusions
+
+- **The two files are not identical when first loaded, but the data is the same.** `all.equal()`
+  reported three differences: column names, the type of the `authors` column, and the object class.
+  After correcting those, both `all.equal()` and `identical()` return `TRUE`.
+- **The real difference is structural, and JSON handles it better.** A book can have any number of
+  authors. JSON stores that as an array, so *An Introduction to Statistical Learning* keeps four
+  distinct author values. HTML has no cell-level list, so the same information becomes the string
+  `"Gareth James, Daniela Witten, Trevor Hastie, Robert Tibshirani"`. The JSON version is closer to
+  tidy data, and flattening it to match the HTML actually throws information away.
+- **If I needed to analyse these authors**, for example to count books per author, I would go the
+  other direction: keep the JSON list and `unnest()` it into one row per book-author pair, rather
+  than collapsing it into a string I would then have to split again.
+- **Type conversion is not symmetric between the readers.** `html_table()` guessed that `Year` is
+  an integer even though HTML stores everything as text, while `fromJSON()` knew it was a number
+  because JSON distinguishes numbers from strings. They agreed here, but only by luck of the
+  guesser being right. The ISBN is the counter-example worth noticing: both kept it as text, which
+  is correct, since `978-1-492-09740-2` would be mangled by any attempt to treat it as a number.
+- **The comparison had to be made deliberately.** `identical()` on the two freshly loaded objects
+  returns `FALSE` for a reason that has nothing to do with the books: one is a tibble and the other
+  is a data frame. A comparison that does not account for class and column order answers a
+  different question than the one being asked.

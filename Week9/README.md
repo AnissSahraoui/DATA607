@@ -53,3 +53,8 @@ Requires R with `tidyverse`, `httr2` and `jsonlite`, and Quarto.
 ```bash
 quarto render nyt_api.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/nyt-ai-coverage
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week9

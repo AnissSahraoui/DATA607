@@ -1,0 +1,394 @@
+---
+title: "How the New York Times Covers Artificial Intelligence"
+subtitle: "Using the Article Search API to compare 2019 with 2026"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(httr2)
+library(jsonlite)
+library(knitr)
+
+snapshot <- "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week9/data/"
+
+accent   <- "#2a78d6"
+accent_2 <- "#eb6834"
+theme_nyt <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# The API and the Question
+
+## The endpoint
+
+I used the **Article Search API**
+(`https://api.nytimes.com/svc/search/v2/articlesearch.json`). Given a search term and a date range,
+it returns article metadata — headline, byline, section, publication date, word count and keywords —
+ten articles at a time, along with `meta.hits`, the **total number of matching articles**. That
+total is the useful part: it is a complete count, not a sample.
+
+## The question
+
+**How has the Times' coverage of artificial intelligence changed between 2019 and 2026 — both in
+volume, and in which sections of the paper carry it?**
+
+The idea is that a subject usually enters a newspaper through a specialist section and, if it
+becomes important enough, spreads into general news. If AI has followed that path, it should show
+up as a change in the mix of sections, not only in the number of articles.
+
+I compare **January–June 2019** against **January–June 2026**, the same six calendar months seven
+years apart, so seasonal differences do not affect the comparison.
+
+# The Request
+
+## Authentication
+
+The key is never written into the code. It lives in my private `~/.Renviron` file as
+`NYT_API_KEY`, outside the repository, and is read at run time:
+
+```{r}
+#| label: auth
+api_key <- Sys.getenv("NYT_API_KEY")
+
+# Report only whether a key was found, never the key itself.
+tibble(key_found = nzchar(api_key), key_characters = nchar(api_key))
+```
+
+It is passed through `req_url_query()`, so `httr2` handles the URL encoding. One consequence worth
+knowing: **printing a request object would display the full URL, including the key**, so this
+document never prints `req` — only the response status and the parsed body.
+
+## The parameters
+
+```{r}
+#| label: request-code
+#| eval: false
+# One request: all articles matching a topic in one calendar month.
+search_month <- function(topic, year, month, page = 0) {
+  start <- as.Date(sprintf("%d-%02d-01", year, month))
+  end   <- seq(start, by = "1 month", length.out = 2)[2] - 1
+
+  request("https://api.nytimes.com/svc/search/v2/articlesearch.json") |>
+    req_url_query(
+      q          = topic,                        # search term
+      begin_date = format(start, "%Y%m%d"),      # inclusive start, YYYYMMDD
+      end_date   = format(end,   "%Y%m%d"),      # inclusive end
+      page       = page,                         # 0-indexed, 10 articles per page
+      `api-key`  = api_key
+    ) |>
+    req_perform()
+}
+```
+
+| Parameter | Value used | Why |
+|---|---|---|
+| `q` | `artificial intelligence` | The topic being tracked |
+| `begin_date` / `end_date` | One calendar month at a time | Gives an exact monthly count, and spreads the article sample evenly across each period |
+| `page` | 0 and 1 | Ten articles per page, so two pages per month |
+| `api-key` | from `Sys.getenv()` | Never hard coded |
+
+## A live call
+
+This chunk runs only when a key is available, so the document still renders for anyone without one.
+It prints the status and the hit count, and nothing that could leak the key.
+
+```{r}
+#| label: live-call
+#| eval: !expr nzchar(Sys.getenv("NYT_API_KEY"))
+resp <- request("https://api.nytimes.com/svc/search/v2/articlesearch.json") |>
+  req_url_query(q = "artificial intelligence",
+                begin_date = "20260601", end_date = "20260630",
+                `api-key` = api_key) |>
+  req_error(is_error = \(r) FALSE) |>
+  req_perform()
+
+parsed <- resp_body_json(resp)
+
+tibble(
+  status         = resp_status(resp),
+  total_hits     = parsed$response$meta$hits,
+  articles_on_page = length(parsed$response$docs)
+)
+```
+
+Two practical notes from building this. The API is rate limited to roughly **five requests per
+minute**, so the collection script pauses 13 seconds between calls. And the `facet_fields` and `fq`
+parameters, which would have returned section counts directly, **return nothing on this access
+tier** — every `fq` filter I tried came back with zero hits — so the section breakdown is built from
+the returned articles instead.
+
+# From Nested JSON to a Tidy Data Frame
+
+## What the response looks like
+
+The JSON is deeply nested. A single article holds the headline inside a `headline` object, the
+author inside a `byline` object, and a variable-length list of keyword objects:
+
+```{r}
+#| label: nested-structure
+#| eval: !expr nzchar(Sys.getenv("NYT_API_KEY"))
+doc <- parsed$response$docs[[1]]
+
+tibble(
+  field = c("headline", "byline", "keywords", "section_name"),
+  shape = c(
+    paste("object with:", paste(names(doc$headline), collapse = ", ")),
+    paste("object with:", paste(names(doc$byline), collapse = ", ")),
+    paste("list of", length(doc$keywords), "objects, each with name/value"),
+    "plain string"
+  )
+)
+```
+
+## The flattening code
+
+Each nested piece is pulled into its own column. `%||%` substitutes `NA` when a field is absent,
+which matters because not every article has every field.
+
+```{r}
+#| label: flatten-code
+#| eval: false
+articles <- map_dfr(response$docs, \(d) tibble(
+  headline         = d$headline$main    %||% NA_character_,  # unnest object
+  byline           = d$byline$original  %||% NA_character_,  # unnest object
+  section_name     = d$section_name     %||% NA_character_,
+  subsection_name  = d$subsection_name  %||% NA_character_,
+  news_desk        = d$news_desk        %||% NA_character_,
+  type_of_material = d$type_of_material %||% NA_character_,
+  pub_date         = d$pub_date         %||% NA_character_,
+  word_count       = d$word_count       %||% NA_integer_,
+  n_keywords       = length(d$keywords),                     # list -> count
+  keywords         = paste(map_chr(d$keywords, \(k) k$value %||% NA_character_),
+                           collapse = "; "),                 # list -> one string
+  web_url          = d$web_url          %||% NA_character_
+))
+```
+
+The full collection script is
+[`fetch_nyt.R`](https://github.com/AnissSahraoui/DATA607/blob/main/Week9/fetch_nyt.R).
+
+## The saved snapshot
+
+Nobody without an API key can repeat the collection, and the live totals change daily as the Times
+publishes. The script therefore saves its results to CSV, and the analysis below reads those files
+from GitHub so the figures in this report stay fixed.
+
+```{r}
+#| label: load-snapshot
+articles <- read_csv(paste0(snapshot, "nyt_ai_articles.csv"), show_col_types = FALSE)
+monthly  <- read_csv(paste0(snapshot, "nyt_ai_monthly_totals.csv"), show_col_types = FALSE)
+
+glimpse(articles)
+```
+
+```{r}
+#| label: show-articles
+articles |>
+  select(headline, section_name, type_of_material, pub_date, word_count, n_keywords) |>
+  slice_head(n = 5)
+```
+
+# Data-Cleaning Decisions
+
+```{r}
+#| label: missing
+articles |>
+  summarise(across(everything(), ~ sum(is.na(.)))) |>
+  pivot_longer(everything(), names_to = "column", values_to = "missing") |>
+  filter(missing > 0) |>
+  kable()
+```
+
+Three decisions, each kept rather than silently patched:
+
+- **`subsection_name` is missing for `r sum(is.na(articles$subsection_name))` of
+  `r nrow(articles)` articles.** Most articles simply have no subsection, so the blank is
+  meaningful. I left it as `NA` and did not use it in the analysis.
+- **`byline` is missing for `r sum(is.na(articles$byline))` articles, all from 2019.** These are
+  wire copy and briefing items that carry no author. I kept the rows, because the question is about
+  sections rather than authors, and dropping them would quietly shrink the 2019 sample.
+- **`keywords` is empty for `r sum(is.na(articles$keywords))` articles.** The keyword list is
+  flattened into one semicolon-separated string with a count alongside it, so an article with no
+  keywords reads as `NA` with `n_keywords` of 0 rather than as an empty string.
+
+```{r}
+#| label: integrity
+articles |>
+  summarise(
+    rows              = n(),
+    duplicate_urls    = sum(duplicated(web_url)),
+    articles_per_year = n_distinct(query_year),
+    sections          = n_distinct(section_name),
+    date_parses       = sum(!is.na(as.Date(substr(pub_date, 1, 10))))
+  ) |>
+  kable()
+```
+
+No article appears twice, and every publication date parses.
+
+**The sampling decision, which matters most.** The monthly totals are **exact**: they come from
+`meta.hits`, which counts every matching article. The section breakdown is a **sample**: 20
+articles per month, 120 per period, drawn evenly across the six months so no single month dominates.
+The API returns articles in relevance order, so this is the 20 articles it ranked most relevant each
+month, not a random draw. I therefore treat the section percentages as indicative rather than exact,
+and lean on the shape of the differences rather than on individual percentage points.
+
+# Results
+
+## Volume
+
+```{r}
+#| label: volume
+period_totals <- monthly |>
+  group_by(year) |>
+  summarise(articles = sum(total_hits), .groups = "drop")
+
+period_totals |> kable(col.names = c("Period (Jan–Jun)", "Articles mentioning AI"))
+```
+
+```{r}
+#| label: fig-monthly
+#| fig-cap: "Articles mentioning artificial intelligence, by month. Counts are exact, taken from the API's hit totals."
+#| fig-height: 3.4
+monthly |>
+  mutate(month_name = factor(month.abb[month], levels = month.abb[1:6]),
+         year = factor(year)) |>
+  ggplot(aes(x = month_name, y = total_hits, fill = year)) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.65) +
+  geom_text(aes(label = total_hits), position = position_dodge(width = 0.75),
+            vjust = -0.4, size = 3.2) +
+  scale_fill_manual(values = c("2019" = accent_2, "2026" = accent), name = NULL) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.12))) +
+  labs(title = "AI coverage is more than five times its 2019 level",
+       x = NULL, y = "Articles") +
+  theme_nyt +
+  theme(legend.position = "top")
+```
+
+```{r}
+#| label: ratio
+ratio <- period_totals$articles[period_totals$year == 2026] /
+         period_totals$articles[period_totals$year == 2019]
+```
+
+The Times published **`r period_totals$articles[period_totals$year == 2019]`** articles mentioning
+AI in the first half of 2019 and **`r period_totals$articles[period_totals$year == 2026]`** in the
+same months of 2026, a **`r round(ratio, 1)`-fold increase**. Every month of 2026 exceeds the whole
+of any month in 2019.
+
+## Which sections
+
+```{r}
+#| label: sections
+section_mix <- articles |>
+  count(query_year, section_name) |>
+  group_by(query_year) |>
+  mutate(share = 100 * n / sum(n)) |>
+  ungroup()
+
+comparison <- section_mix |>
+  select(query_year, section_name, share) |>
+  pivot_wider(names_from = query_year, values_from = share, names_prefix = "y") |>
+  replace_na(list(y2019 = 0, y2026 = 0)) |>
+  mutate(change = y2026 - y2019) |>
+  arrange(desc(abs(change)))
+
+comparison |>
+  slice_head(n = 8) |>
+  mutate(across(where(is.numeric), ~ round(.x, 1))) |>
+  kable(col.names = c("Section", "2019 (%)", "2026 (%)", "Change (pp)"))
+```
+
+```{r}
+#| label: fig-sections
+#| fig-cap: "Share of sampled AI articles by section. Only sections reaching 3% in either period are shown."
+#| fig-height: 4
+section_mix |>
+  group_by(section_name) |>
+  filter(max(share) >= 3) |>
+  ungroup() |>
+  mutate(year = factor(query_year),
+         section_name = fct_reorder(section_name, share, .fun = max)) |>
+  ggplot(aes(x = share, y = section_name, fill = year)) +
+  geom_col(position = position_dodge(width = 0.75), width = 0.65) +
+  geom_text(aes(label = sprintf("%.1f%%", share)),
+            position = position_dodge(width = 0.75), hjust = -0.15, size = 3) +
+  scale_fill_manual(values = c("2019" = accent_2, "2026" = accent), name = NULL) +
+  scale_x_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(title = "Technology still leads, but AI has moved into general news",
+       x = "Share of sampled articles (%)", y = NULL) +
+  theme_nyt +
+  theme(legend.position = "top", panel.grid.major.y = element_blank())
+```
+
+## How concentrated is the coverage?
+
+```{r}
+#| label: concentration
+section_mix |>
+  group_by(query_year) |>
+  summarise(
+    sections_used  = n_distinct(section_name),
+    top_3_share    = round(sum(sort(share, decreasing = TRUE)[1:3]), 1),
+    .groups = "drop"
+  ) |>
+  kable(col.names = c("Period", "Distinct sections", "Share in top 3 sections (%)"))
+```
+
+```{r}
+#| label: material
+articles |>
+  mutate(commentary = type_of_material %in% c("Op-Ed", "Editorial", "Letter")) |>
+  group_by(query_year) |>
+  summarise(
+    commentary_share = round(100 * mean(commentary), 1),
+    median_words     = median(word_count),
+    .groups = "drop"
+  ) |>
+  kable(col.names = c("Period", "Commentary (%)", "Median word count"))
+```
+
+# Conclusions
+
+- **Volume has grown more than fivefold.** AI went from
+  `r period_totals$articles[period_totals$year == 2019]` articles in the first half of 2019 to
+  `r period_totals$articles[period_totals$year == 2026]` in the same months of 2026. This figure is
+  exact rather than sampled, since it comes from the API's own hit counts.
+- **Technology remains the home section, and that has not changed.** It accounts for about 30% of
+  sampled AI articles in both periods, with Business around 21–23%. The subject did not migrate
+  away from the technology desk; the rest of the paper joined in.
+- **The clearest shift is from commentary to news.** Opinion fell from
+  `r round(comparison$y2019[comparison$section_name == "Opinion"], 1)`% of sampled articles to
+  `r round(comparison$y2026[comparison$section_name == "Opinion"], 1)`%, while the U.S. section rose
+  from `r round(comparison$y2019[comparison$section_name == "U.S."], 1)`% to
+  `r round(comparison$y2026[comparison$section_name == "U.S."], 1)`% and New York went from nothing
+  to `r round(comparison$y2026[comparison$section_name == "New York"], 1)`%. Counting by article
+  type rather than section says the same thing: commentary pieces fell from 20.8% to 6.7% of the
+  sample.
+- **Coverage has spread out.** The top three sections held 74.2% of sampled AI articles in 2019 and
+  64.2% in 2026.
+- **Read together, this looks like a subject becoming a beat.** In 2019 AI was something the paper
+  argued *about*, in Opinion and in Technology. By 2026 it is something reported *on* — in national
+  news, in local New York coverage, and even in Real Estate and Theater. The articles are also
+  slightly shorter, with the median falling from 1,100 to 933 words, which fits routine news
+  reporting rather than occasional long essays.
+
+**What would strengthen this.** The section percentages rest on 120 articles per period chosen by
+the API's relevance ranking, not a random sample. With a higher access tier the `facet_fields`
+parameter would return exact section counts, and the same comparison could then be made on complete
+data rather than on a sample. The hit totals, which carry the headline finding, do not have this
+limitation.

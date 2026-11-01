@@ -58,3 +58,4 @@ Home Win / Draw / Away Win.
 - [Week 5B: Chess Elo Calculations](Week5B/)
 - [Project 2: Data Tidying and Transformation](Week6/)
 - [Week 7: Working with HTML and JSON in R](Week7/)
+- [Week 9: Using a New York Times API in R](Week9/)

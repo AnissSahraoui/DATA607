@@ -23,7 +23,7 @@ The key is read from `~/.Renviron` as `NYT_API_KEY` and never appears in the cod
 or the rendered HTML — all three were checked. To run the collection yourself:
 
 ```bash
-printf 'NYT_API_KEY=your_key_here\n' >> ~/.Renviron
+printf 'NYT_API_KEY=api_key_here\n' >> ~/.Renviron
 Rscript fetch_nyt.R
 ```
 

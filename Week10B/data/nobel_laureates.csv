@@ -1,0 +1,1029 @@
+laureate_id,name,is_organization,gender,birth_date,birth_country,birth_country_now,birth_continent,death_date,n_prizes
+745,A. Michael Spence,FALSE,male,1943-11-07,USA,USA,North America,NA,1
+102,Aage N. Bohr,FALSE,male,1922-06-19,Denmark,Denmark,Europe,2009-09-08,1
+779,Aaron Ciechanover,FALSE,male,1947-10-01,British Protectorate of Palestine,Israel,Asia,NA,1
+259,Aaron Klug,FALSE,male,1926-08-11,Lithuania,Lithuania,Europe,2018-11-20,1
+1004,Abdulrazak Gurnah,FALSE,male,1948-00-00,NA,NA,NA,NA,1
+114,Abdus Salam,FALSE,male,1926-01-29,India,Pakistan,Asia,1996-11-21,1
+982,Abhijit Banerjee,FALSE,male,1961-02-21,India,India,Asia,NA,1
+981,Abiy Ahmed Ali,FALSE,male,1976-08-15,Ethiopia,Ethiopia,Africa,NA,1
+843,Ada E. Yonath,FALSE,female,1939-06-22,British Mandate of Palestine,Israel,Asia,2026-08-31,1
+866,Adam G. Riess,FALSE,male,1969-12-16,USA,USA,North America,NA,1
+199,Adolf Butenandt,FALSE,male,1903-03-24,Germany,Germany,Europe,1995-01-18,1
+164,Adolf von Baeyer,FALSE,male,1835-10-31,Prussia,Germany,Europe,1917-08-20,1
+185,Adolf Windaus,FALSE,male,1876-12-25,Germany,Germany,Europe,1959-06-09,1
+541,Adolfo Pérez Esquivel,FALSE,male,1931-11-26,Argentina,Argentina,South America,NA,1
+292,Ahmed Zewail,FALSE,male,1946-02-26,Egypt,Egypt,Africa,2016-08-02,1
+853,Akira Suzuki,FALSE,male,1930-09-12,Japan,Japan,Asia,NA,1
+978,Akira Yoshino,FALSE,male,1948-01-30,Japan,Japan,Asia,NA,1
+819,Al Gore,FALSE,male,1948-03-31,USA,USA,North America,NA,1
+1012,Alain Aspect,FALSE,male,1947-06-15,France,France,Europe,NA,1
+729,Alan Heeger,FALSE,male,1936-01-22,USA,USA,North America,NA,1
+376,Alan Hodgkin,FALSE,male,1914-02-05,United Kingdom,United Kingdom,Europe,1998-12-20,1
+730,Alan MacDiarmid,FALSE,male,1927-04-14,New Zealand,New Zealand,Oceania,2007-02-07,1
+11,Albert A. Michelson,FALSE,male,1852-12-19,Prussia,Poland,Europe,1931-05-09,1
+628,Albert Camus,FALSE,male,1913-11-07,French Algeria,Algeria,Africa,1960-01-04,1
+403,Albert Claude,FALSE,male,1898-08-24,Belgium,Belgium,Europe,1983-05-22,1
+26,Albert Einstein,FALSE,male,1879-03-14,Germany,Germany,Europe,1955-04-18,1
+814,Albert Fert,FALSE,male,1938-03-07,France,France,Europe,NA,1
+465,Albert Gobat,FALSE,male,1843-05-21,Switzerland,Switzerland,Europe,1914-03-16,1
+519,Albert Lutuli,FALSE,male,1898-00-00,Southern Rhodesia,Zimbabwe,Africa,1967-07-21,1
+513,Albert Schweitzer,FALSE,male,1875-01-14,Germany,France,Europe,1965-09-04,1
+332,Albert Szent-Györgyi,FALSE,male,1893-09-16,Austria-Hungary,Hungary,Europe,1986-10-22,1
+304,Albrecht Kossel,FALSE,male,1853-09-16,Mecklenburg,Germany,Europe,1927-07-05,1
+83,Aleksandr M. Prokhorov,FALSE,male,1916-07-11,Australia,Australia,Oceania,2002-01-08,1
+644,Aleksandr Solzhenitsyn,FALSE,male,1918-12-11,Russia,Russia,Europe,2008-08-03,1
+1031,Aleksey Yekimov ,FALSE,male,1945-00-00,USSR,Russia,Europe,NA,1
+1018,Ales Bialiatski,FALSE,male,1962-09-25,Russia,Russia,Europe,NA,1
+766,Alexei Abrikosov,FALSE,male,1928-06-25,USSR,Russia,Europe,2017-03-29,1
+306,Alexis Carrel,FALSE,male,1873-06-28,France,France,Europe,1944-11-05,1
+544,Alfonso García Robles,FALSE,male,1911-03-20,Mexico,Mexico,North America,1991-09-02,1
+392,Alfred D. Hershey,FALSE,male,1908-12-04,USA,USA,North America,1997-05-22,1
+479,Alfred Fried,FALSE,male,1864-11-11,Austria,Austria,Europe,1921-05-04,1
+450,Alfred G. Gilman,FALSE,male,1941-07-01,USA,USA,North America,2015-12-23,1
+87,Alfred Kastler,FALSE,male,1902-05-03,Germany,France,Europe,1984-01-07,1
+174,Alfred Werner,FALSE,male,1866-12-12,France,France,Europe,1919-11-15,1
+892,Alice Munro,FALSE,female,1931-07-10,Canada,Canada,North America,2024-05-13,1
+417,Allan M. Cormack,FALSE,male,1924-02-23,South Africa,South Africa,Africa,1998-05-07,1
+305,Allvar Gullstrand,FALSE,male,1862-06-05,Sweden,Sweden,Europe,1930-07-28,1
+300,Alphonse Laveran,FALSE,male,1845-06-18,France,France,Europe,1922-05-18,1
+543,Alva Myrdal,FALSE,female,1902-01-31,Sweden,Sweden,Europe,1986-02-01,1
+882,Alvin E. Roth,FALSE,male,1951-12-18,USA,USA,North America,NA,1
+719,Amartya Sen,FALSE,male,1933-11-03,India,India,Asia,NA,1
+509,American Friends Service Committee,TRUE,NA,1917-00-00,USA,USA,NA,NA,1
+537,Amnesty International,TRUE,NA,1961-00-00,United Kingdom,United Kingdom,NA,NA,1
+590,Anatole France,FALSE,male,1844-04-16,France,France,Europe,1924-10-12,1
+360,André F. Cournand,FALSE,male,1895-09-24,France,France,Europe,1988-02-19,1
+849,Andre Geim,FALSE,male,1958-10-21,Russia,Russia,Europe,NA,1
+618,André Gide,FALSE,male,1869-11-22,France,France,Europe,1951-02-19,1
+381,André Lwoff,FALSE,male,1902-05-08,France,France,Europe,1994-09-30,1
+990,Andrea Ghez,FALSE,female,1965-06-16,USA,USA,North America,NA,1
+534,Andrei Sakharov,FALSE,male,1921-05-21,Russia,Russia,Europe,1989-12-14,1
+377,Andrew Huxley,FALSE,male,1917-11-22,United Kingdom,United Kingdom,Europe,2012-05-30,1
+412,Andrew V. Schally,FALSE,male,1926-11-30,Poland,Lithuania,Europe,2024-10-17,1
+802,Andrew Z. Fire,FALSE,male,1959-04-27,USA,USA,North America,NA,1
+926,Angus Deaton,FALSE,male,1945-10-19,Scotland,Scotland,Europe,NA,1
+1067,Anne Carson,FALSE,female,1950-06-21,Canada,Canada,North America,NA,1
+1028,Anne L’Huillier,FALSE,female,1958-08-16,France,France,Europe,NA,1
+1017,Annie Ernaux,FALSE,female,1940-09-01,France,France,Europe,NA,1
+768,Anthony J. Leggett,FALSE,male,1938-03-26,United Kingdom,United Kingdom,Europe,2026-03-08,1
+1014,Anton Zeilinger,FALSE,male,1945-05-20,Austria,Austria,Europe,NA,1
+101,Antony Hewish,FALSE,male,1924-05-11,United Kingdom,United Kingdom,Europe,2021-09-13,1
+538,Anwar al-Sadat,FALSE,male,1918-12-25,Egypt,Egypt,Africa,1981-10-06,1
+214,Archer J.P. Martin,FALSE,male,1910-03-01,United Kingdom,United Kingdom,Europe,2002-07-28,1
+311,Archibald V. Hill,FALSE,male,1886-09-26,United Kingdom,United Kingdom,Europe,1977-06-03,1
+998,Ardem Patapoutian,FALSE,male,1967-00-00,Lebanon,Lebanon,Asia,NA,1
+891,Arieh Warshel,FALSE,male,1940-11-20,British Mandate of Palestine,Israel,Asia,NA,1
+490,Aristide Briand,FALSE,male,1862-03-28,France,France,Europe,1932-03-07,1
+208,Arne Tiselius,FALSE,male,1902-08-10,Sweden,Sweden,Europe,1971-10-29,1
+111,Arno Penzias,FALSE,male,1933-04-26,Germany,Germany,Europe,2024-01-22,1
+960,Arthur Ashkin,FALSE,male,1922-09-02,USA,USA,North America,2020-09-21,1
+920,Arthur B. McDonald,FALSE,male,1943-08-29,Canada,Canada,North America,NA,1
+33,Arthur H. Compton,FALSE,male,1892-09-10,USA,USA,North America,1962-03-15,1
+186,Arthur Harden,FALSE,male,1865-10-12,United Kingdom,United Kingdom,Europe,1940-06-17,1
+499,Arthur Henderson,FALSE,male,1863-09-13,Scotland,Scotland,Europe,1935-10-20,1
+368,Arthur Kornberg,FALSE,male,1918-03-03,USA,USA,North America,2007-10-26,1
+119,Arthur L. Schawlow,FALSE,male,1921-05-05,USA,USA,North America,1999-04-28,1
+203,Artturi Virtanen,FALSE,male,1895-01-15,Russian Empire,Finland,Europe,1973-11-11,1
+722,Arvid Carlsson,FALSE,male,1923-01-25,Sweden,Sweden,Europe,2018-06-29,1
+310,August Krogh,FALSE,male,1874-11-15,Denmark,Denmark,Europe,1949-09-13,1
+475,Auguste Beernaert,FALSE,male,1829-07-26,Belgium,Belgium,Europe,1912-10-06,1
+553,Aung San Suu Kyi,FALSE,female,1945-06-19,Burma,Myanmar,Asia,NA,1
+780,Avram Hershko,FALSE,male,1937-12-31,Hungary,Hungary,Europe,NA,1
+923,Aziz Sancar,FALSE,male,1946-09-08,Turkey,Turkey,Asia,NA,1
+845,Barack H. Obama,FALSE,male,1961-08-04,USA,USA,North America,NA,1
+428,Barbara McClintock,FALSE,female,1902-06-16,USA,USA,North America,1992-09-02,1
+942,Barry C. Barish,FALSE,male,1936-01-27,USA,USA,North America,NA,1
+789,Barry J. Marshall,FALSE,male,1951-09-30,Australia,Australia,Oceania,NA,1
+409,Baruch S. Blumberg,FALSE,male,1925-07-28,USA,USA,North America,2011-04-05,1
+419,Baruj Benacerraf,FALSE,male,1920-10-29,Venezuela,Venezuela,South America,2011-08-02,1
+1021,Ben Bernanke,FALSE,male,1953-12-13,USA,USA,North America,NA,1
+103,Ben R. Mottelson,FALSE,male,1926-07-09,USA,USA,North America,2022-05-13,1
+936,Bengt Holmström,FALSE,male,1949-04-18,Finland,Finland,Europe,NA,1
+426,Bengt I. Samuelsson,FALSE,male,1934-05-21,Sweden,Sweden,Europe,2024-07-05,1
+1002,Benjamin List,FALSE,male,1968-01-11,Germany,Germany,Europe,NA,1
+933,Bernard L. Feringa,FALSE,male,1951-05-18,the Netherlands,the Netherlands,Europe,NA,1
+345,Bernardo Houssay,FALSE,male,1887-04-10,Argentina,Argentina,South America,1971-09-21,1
+445,Bert Sakmann,FALSE,male,1942-06-12,Germany,Germany,Europe,NA,1
+468,Bertha von Suttner,FALSE,female,1843-06-09,Austrian Empire,Czech Republic,Europe,1914-06-21,1
+689,Bertil Ohlin,FALSE,male,1899-04-23,Sweden,Sweden,Europe,1979-08-03,1
+145,Bertram N. Brockhouse,FALSE,male,1918-07-15,Canada,Canada,North America,2003-10-13,1
+621,Bertrand Russell,FALSE,male,1872-05-18,United Kingdom,United Kingdom,Europe,1970-02-02,1
+535,Betty Williams,FALSE,female,1943-05-22,Northern Ireland,Northern Ireland,Europe,2020-03-17,1
+572,Bjørnstjerne Bjørnson,FALSE,male,1832-12-08,Norway,Norway,Europe,1910-04-26,1
+937,Bob Dylan,FALSE,male,1941-05-24,USA,USA,North America,NA,1
+629,Boris Pasternak,FALSE,male,1890-02-10,Russia,Russia,Europe,1960-05-30,1
+99,Brian D. Josephson,FALSE,male,1940-01-04,United Kingdom,United Kingdom,Europe,NA,1
+879,Brian Kobilka,FALSE,male,1955-05-30,USA,USA,North America,NA,1
+865,Brian P. Schmidt,FALSE,male,1967-02-24,USA,USA,North America,NA,1
+861,Bruce A. Beutler,FALSE,male,1957-12-29,USA,USA,North America,NA,1
+261,Bruce Merrifield,FALSE,male,1921-07-15,USA,USA,North America,2006-05-14,1
+105,Burton Richter,FALSE,male,1931-03-22,USA,USA,North America,2018-07-18,1
+34,C.T.R. Wilson,FALSE,male,1869-02-14,Scotland,Scotland,Europe,1959-11-15,1
+298,Camillo Golgi,FALSE,male,1843-07-07,Italy,Italy,Europe,1926-01-21,1
+666,Camilo José Cela,FALSE,male,1916-05-11,Spain,Spain,Europe,2002-01-17,1
+189,Carl Bosch,FALSE,male,1874-08-27,Germany,Germany,Europe,1940-04-26,1
+343,Carl Cori,FALSE,male,1896-12-05,Austria-Hungary,Czech Republic,Europe,1984-10-20,1
+43,Carl D. Anderson,FALSE,male,1905-09-03,USA,USA,North America,1991-01-11,1
+588,Carl Spitteler,FALSE,male,1845-04-24,Switzerland,Switzerland,Europe,1924-12-29,1
+500,Carl von Ossietzky,FALSE,male,1889-10-03,Germany,Germany,Europe,1938-05-04,1
+740,Carl Wieman,FALSE,male,1951-03-26,USA,USA,North America,NA,1
+124,Carlo Rubbia,FALSE,male,1934-03-31,Italy,Italy,Europe,NA,1
+562,Carlos Filipe Ximenes Belo,FALSE,male,1948-02-03,East Timor,East Timor,Oceania,NA,1
+501,Carlos Saavedra Lamas,FALSE,male,1878-11-01,Argentina,Argentina,South America,1959-05-05,1
+836,Carol W. Greider,FALSE,female,1961-04-15,USA,USA,North America,NA,1
+1015,Carolyn Bertozzi,FALSE,female,1966-10-10,USA,USA,North America,NA,1
+55,Cecil Powell,FALSE,male,1903-12-05,United Kingdom,United Kingdom,Europe,1969-08-09,1
+1020,Center for Civil Liberties,TRUE,NA,2007-00-00,Ukraine,Ukraine,NA,NA,1
+431,César Milstein,FALSE,male,1927-10-08,Argentina,Argentina,South America,2002-03-24,1
+384,Charles B. Huggins,FALSE,male,1901-09-22,Canada,Canada,North America,1997-01-12,1
+25,Charles Edouard Guillaume,FALSE,male,1861-02-15,Switzerland,Switzerland,Europe,1938-06-13,1
+489,Charles G. Dawes,FALSE,male,1865-08-27,USA,USA,North America,1951-04-23,1
+22,Charles Glover Barkla,FALSE,male,1877-06-07,United Kingdom,United Kingdom,Europe,1944-10-23,1
+81,Charles H. Townes,FALSE,male,1915-07-28,USA,USA,North America,2015-01-27,1
+269,Charles J. Pedersen,FALSE,male,1904-10-03,Korea,South Korea,Asia,1989-10-26,1
+838,Charles K. Kao,FALSE,male,1933-11-04,China,China,Asia,2018-09-23,1
+987,Charles M. Rice,FALSE,male,1952-08-25,USA,USA,North America,NA,1
+318,Charles Nicolle,FALSE,male,1866-09-21,France,France,Europe,1936-02-28,1
+307,Charles Richet,FALSE,male,1850-08-26,France,France,Europe,1935-12-04,1
+68,Chen Ning Yang,FALSE,male,1922-09-22,China,China,Asia,2025-10-18,1
+319,Christiaan Eijkman,FALSE,male,1858-08-11,the Netherlands,the Netherlands,Europe,1930-11-05,1
+241,Christian Anfinsen,FALSE,male,1916-03-26,USA,USA,North America,1995-05-14,1
+404,Christian de Duve,FALSE,male,1917-10-02,United Kingdom,United Kingdom,Europe,2013-05-04,1
+486,Christian Lange,FALSE,male,1869-09-17,Norway,Norway,Europe,1938-12-11,1
+453,Christiane Nüsslein-Volhard,FALSE,female,1942-10-20,Germany,Germany,Europe,NA,1
+858,Christopher A. Pissarides,FALSE,male,1948-02-20,Cyprus,Cyprus,Europe,NA,1
+873,Christopher A. Sims,FALSE,male,1942-10-21,USA,USA,North America,2026-03-14,1
+153,Claude Cohen-Tannoudji,FALSE,male,1933-04-01,French Algeria,Algeria,Africa,NA,1
+662,Claude Simon,FALSE,male,1913-10-10,Madagascar,Madagascar,Africa,2005-07-06,1
+1034,Claudia Goldin,FALSE,female,1946-05-14,USA,USA,North America,NA,1
+146,Clifford G. Shull,FALSE,male,1915-09-23,USA,USA,North America,2001-03-31,1
+44,Clinton Davisson,FALSE,male,1881-10-22,USA,USA,North America,1958-02-01,1
+772,Clive W.J. Granger,FALSE,male,1934-09-04,United Kingdom,United Kingdom,Europe,2009-05-27,1
+505,Cordell Hull,FALSE,male,1871-10-02,USA,USA,North America,1955-07-23,1
+333,Corneille Heymans,FALSE,male,1892-03-28,Belgium,Belgium,Europe,1968-07-18,1
+803,Craig C. Mello,FALSE,male,1960-10-18,USA,USA,North America,NA,1
+657,Czesław Miłosz,FALSE,male,1911-06-30,Russian Empire,Lithuania,Europe,2004-08-14,1
+410,D. Carleton Gajdusek,FALSE,male,1923-09-09,USA,USA,North America,2008-12-12,1
+520,Dag Hammarskjöld,FALSE,male,1905-07-29,Sweden,Sweden,Europe,1961-09-18,1
+857,Dale T. Mortensen,FALSE,male,1939-02-02,USA,USA,North America,2014-01-09,1
+867,Dan Shechtman,FALSE,male,1941-01-24,British Mandate of Palestine,Israel,Asia,NA,1
+363,Daniel Bovet,FALSE,male,1907-03-23,Switzerland,Switzerland,Europe,1992-04-08,1
+157,Daniel C. Tsui,FALSE,male,1939-02-28,China,China,Asia,NA,1
+759,Daniel Kahneman,FALSE,male,1934-03-05,British Mandate of Palestine,Israel,Asia,2024-03-27,1
+733,Daniel L. McFadden,FALSE,male,1937-07-29,USA,USA,North America,NA,1
+415,Daniel Nathans,FALSE,male,1928-10-30,USA,USA,North America,1999-11-16,1
+674,Dario Fo,FALSE,male,1926-03-24,Italy,Italy,Europe,2016-10-13,1
+1044,Daron Acemoglu,FALSE,male,1967-09-03,Turkey,Turkey,Asia,NA,1
+1039,David Baker,FALSE,male,1962-00-00,USA,USA,North America,NA,1
+406,David Baltimore,FALSE,male,1938-03-07,USA,USA,North America,2025-09-06,1
+1007,David Card,FALSE,male,1956-00-00,Canada,Canada,North America,NA,1
+423,David H. Hubel,FALSE,male,1926-02-27,Canada,Canada,North America,2013-09-22,1
+776,David J. Gross,FALSE,male,1941-02-19,USA,USA,North America,NA,1
+928,David J. Thouless,FALSE,male,1934-09-21,United Kingdom,United Kingdom,Europe,2019-04-06,1
+877,David J. Wineland,FALSE,male,1944-02-24,USA,USA,North America,NA,1
+997,David Julius,FALSE,male,1955-11-04,USA,USA,North America,NA,1
+149,David M. Lee,FALSE,male,1931-01-20,USA,USA,North America,NA,1
+567,David Trimble,FALSE,male,1944-10-15,Northern Ireland,Northern Ireland,Europe,2022-07-25,1
+1003,David W.C. MacMillan,FALSE,male,1968-03-16,United Kingdom,United Kingdom,Europe,NA,1
+1040,Demis Hassabis,FALSE,male,1976-07-27,United Kingdom,United Kingdom,Europe,NA,1
+966,Denis Mukwege,FALSE,male,1955-03-01,Belgian Congo,Democratic Republic of the Congo,Africa,NA,1
+93,Dennis Gabor,FALSE,male,1900-06-05,Hungary,Hungary,Europe,1979-02-08,1
+237,Derek Barton,FALSE,male,1918-09-08,United Kingdom,United Kingdom,Europe,1998-03-16,1
+669,Derek Walcott,FALSE,male,1930-01-23,Saint Lucia,Saint Lucia,North America,2017-03-17,1
+546,Desmond Tutu,FALSE,male,1931-10-07,South Africa,South Africa,Africa,2021-12-26,1
+362,Dickinson W. Richards,FALSE,male,1895-10-30,USA,USA,North America,1973-02-23,1
+975,Didier Queloz,FALSE,male,1966-02-23,Switzerland,Switzerland,Europe,NA,1
+1006,Dmitry Muratov,FALSE,male,1961-10-29,USSR,Russia,Europe,NA,1
+568,Doctors Without Borders,TRUE,NA,1971-00-00,France,France,NA,NA,1
+74,Donald A. Glaser,FALSE,male,1926-09-21,USA,USA,North America,2013-02-28,1
+267,Donald J. Cram,FALSE,male,1919-04-22,USA,USA,North America,2001-06-17,1
+962,Donna Strickland,FALSE,female,1959-05-27,Canada,Canada,North America,NA,1
+817,Doris Lessing,FALSE,female,1919-10-22,Persia,Iran,Asia,2013-11-17,1
+230,Dorothy Crowfoot Hodgkin,FALSE,female,1910-05-12,Egypt,Egypt,Africa,1994-07-29,1
+150,Douglas D. Osheroff,FALSE,male,1945-08-01,USA,USA,North America,NA,1
+1022,Douglas Diamond,FALSE,male,1953-10-25,USA,USA,North America,NA,1
+710,Douglass C. North,FALSE,male,1920-11-05,USA,USA,North America,2015-11-23,1
+1025,Drew Weissman,FALSE,male,1959-09-07,USA,USA,North America,NA,1
+264,Dudley R. Herschbach,FALSE,male,1932-06-18,USA,USA,North America,NA,1
+443,E. Donnall Thomas,FALSE,male,1920-03-15,USA,USA,North America,2012-10-20,1
+59,E. M. Purcell,FALSE,male,1912-08-30,USA,USA,North America,1997-03-07,1
+397,"Earl W. Sutherland, Jr.",FALSE,male,1915-11-19,USA,USA,North America,1974-03-09,1
+324,Edgar Adrian,FALSE,male,1889-11-30,United Kingdom,United Kingdom,Europe,1977-08-08,1
+446,Edmond H. Fischer,FALSE,male,1920-04-06,China,China,Asia,2021-08-27,1
+807,Edmund S. Phelps,FALSE,male,1933-07-26,USA,USA,North America,2026-05-15,1
+166,Eduard Buchner,FALSE,male,1860-05-20,Bavaria,Germany,Europe,1917-08-13,1
+905,Edvard I. Moser,FALSE,male,1962-04-27,Norway,Norway,Europe,NA,1
+336,Edward A. Doisy,FALSE,male,1893-11-13,USA,USA,North America,1986-10-23,1
+452,Edward B. Lewis,FALSE,male,1918-05-20,USA,USA,North America,2004-07-21,1
+349,Edward C. Kendall,FALSE,male,1886-03-08,USA,USA,North America,1972-05-04,1
+787,Edward C. Prescott,FALSE,male,1940-12-26,USA,USA,North America,2022-11-06,1
+365,Edward Tatum,FALSE,male,1909-12-14,USA,USA,North America,1975-11-05,1
+52,Edward V. Appleton,FALSE,male,1892-09-06,United Kingdom,United Kingdom,Europe,1965-04-21,1
+447,Edwin G. Krebs,FALSE,male,1918-06-06,USA,USA,North America,2009-12-21,1
+212,Edwin M. McMillan,FALSE,male,1907-09-18,USA,USA,North America,1991-09-07,1
+348,Egas Moniz,FALSE,male,1874-11-29,Portugal,Portugal,Europe,1955-12-13,1
+852,Ei-ichi Negishi,FALSE,male,1935-07-14,China,China,Asia,2021-06-06,1
+533,Eisaku Satō,FALSE,male,1901-03-27,Japan,Japan,Asia,1975-06-03,1
+782,Elfriede Jelinek,FALSE,female,1946-10-20,Austria,Austria,Europe,NA,1
+658,Elias Canetti,FALSE,male,1905-07-25,Bulgaria,Bulgaria,Europe,1994-08-14,1
+275,Elias James Corey,FALSE,male,1928-07-12,USA,USA,North America,NA,1
+464,Élie Ducommun,FALSE,male,1833-02-19,Switzerland,Switzerland,Europe,1906-12-07,1
+548,Elie Wiesel,FALSE,male,1928-09-30,Romania,Romania,Europe,2016-07-02,1
+480,Elihu Root,FALSE,male,1845-02-15,USA,USA,North America,1937-02-07,1
+846,Elinor Ostrom,FALSE,female,1933-08-07,USA,USA,North America,2012-06-12,1
+835,Elizabeth H. Blackburn,FALSE,female,1948-11-26,Australia,Australia,Oceania,NA,1
+869,Ellen Johnson Sirleaf,FALSE,female,1938-10-29,Liberia,Liberia,Africa,NA,1
+161,Emil Fischer,FALSE,male,1852-10-09,Prussia,Germany,Europe,1919-07-15,1
+293,Emil von Behring,FALSE,male,1854-03-15,Prussia,Poland,Europe,1917-03-31,1
+72,Emilio Segrè,FALSE,male,1905-02-01,Italy,Italy,Europe,1989-04-22,1
+506,Emily Greene Balch,FALSE,female,1867-01-08,USA,USA,North America,1961-01-09,1
+991,Emmanuelle Charpentier,FALSE,female,1968-12-11,France,France,Europe,NA,1
+46,Enrico Fermi,FALSE,male,1901-09-29,Italy,Italy,Europe,1954-11-28,1
+909,Eric Betzig,FALSE,male,1960-01-13,USA,USA,North America,NA,1
+738,Eric Cornell,FALSE,male,1961-12-19,USA,USA,North America,NA,1
+454,Eric F. Wieschaus,FALSE,male,1947-06-08,USA,USA,North America,NA,1
+724,Eric Kandel,FALSE,male,1929-11-07,Austria,Austria,Europe,NA,1
+821,Eric S. Maskin,FALSE,male,1950-12-12,USA,USA,North America,NA,1
+604,Erik Axel Karlfeldt,FALSE,male,1864-07-20,Sweden,Sweden,Europe,1931-04-08,1
+625,Ernest Hemingway,FALSE,male,1899-07-21,USA,USA,North America,1961-07-02,1
+47,Ernest Lawrence,FALSE,male,1901-08-08,USA,USA,North America,1958-08-27,1
+167,Ernest Rutherford,FALSE,male,1871-08-30,New Zealand,New Zealand,Oceania,1937-10-19,1
+57,Ernest T.S. Walton,FALSE,male,1903-10-06,Ireland,Ireland,Europe,1995-06-25,1
+471,Ernesto Teodoro Moneta,FALSE,male,1833-09-20,Austrian Empire,Italy,Europe,1918-02-10,1
+340,Ernst B. Chain,FALSE,male,1906-06-19,Germany,Germany,Europe,1979-08-12,1
+244,Ernst Otto Fischer,FALSE,male,1918-11-10,Germany,Germany,Europe,2007-07-23,1
+127,Ernst Ruska,FALSE,male,1906-12-25,Germany,Germany,Europe,1988-05-27,1
+444,Erwin Neher,FALSE,male,1944-03-20,Germany,Germany,Europe,NA,1
+39,Erwin Schrödinger,FALSE,male,1887-08-12,Austria,Austria,Europe,1961-01-04,1
+983,Esther Duflo,FALSE,female,1972-10-25,France,France,Europe,NA,1
+894,Eugene F. Fama,FALSE,male,1939-02-14,USA,USA,North America,NA,1
+608,Eugene O'Neill,FALSE,male,1888-10-16,USA,USA,North America,1953-11-27,1
+78,Eugene Wigner,FALSE,male,1902-11-17,Austria-Hungary,Hungary,Europe,1995-01-01,1
+651,Eugenio Montale,FALSE,male,1896-10-12,Italy,Italy,Europe,1981-09-12,1
+881,European Union,TRUE,NA,1952-00-00,NA,NA,NA,NA,1
+649,Eyvind Johnson,FALSE,male,1900-07-29,Sweden,Sweden,Europe,1976-08-25,1
+929,F. Duncan M. Haldane,FALSE,male,1951-09-14,United Kingdom,United Kingdom,Europe,NA,1
+283,F. Sherwood Rowland,FALSE,male,1927-06-28,USA,USA,North America,2012-03-10,1
+556,F.W. de Klerk,FALSE,male,1936-03-18,South Africa,South Africa,Africa,2021-11-11,1
+58,Felix Bloch,FALSE,male,1905-10-23,Switzerland,Switzerland,Europe,1983-09-10,1
+379,Feodor Lynen,FALSE,male,1911-04-06,Germany,Germany,Europe,1979-08-06,1
+14,Ferdinand Braun,FALSE,male,1850-06-06,Hesse-Kassel,Germany,Europe,1918-04-20,1
+492,Ferdinand Buisson,FALSE,male,1841-12-20,France,France,Europe,1932-02-16,1
+1027,Ferenc Krausz,FALSE,male,1962-05-17,Hungary,Hungary,Europe,NA,1
+460,Ferid Murad,FALSE,male,1936-09-14,USA,USA,North America,2023-09-04,1
+786,Finn E. Kydland,FALSE,male,1943-12-01,Norway,Norway,Europe,NA,1
+963,Frances H. Arnold,FALSE,female,1956-07-25,USA,USA,North America,NA,1
+372,Francis Crick,FALSE,male,1916-06-08,United Kingdom,United Kingdom,Europe,2004-07-28,1
+1064,Francis Halzen,FALSE,male,1944-03-23,Belgium,Belgium,Europe,NA,1
+180,Francis W. Aston,FALSE,male,1877-09-01,United Kingdom,United Kingdom,Europe,1945-11-20,1
+699,Franco Modigliani,FALSE,male,1918-06-18,Italy,Italy,Europe,2003-09-25,1
+887,François Englert,FALSE,male,1932-11-06,Belgium,Belgium,Europe,2026-06-18,1
+380,François Jacob,FALSE,male,1920-06-17,France,France,Europe,2013-04-19,1
+623,François Mauriac,FALSE,male,1885-10-11,France,France,Europe,1970-09-01,1
+824,Françoise Barré-Sinoussi,FALSE,female,1947-07-30,France,France,Europe,NA,1
+494,Frank B. Kellogg,FALSE,male,1856-12-22,USA,USA,North America,1937-12-21,1
+778,Frank Wilczek,FALSE,male,1951-05-15,USA,USA,North America,NA,1
+613,Frans Eemil Sillanpää,FALSE,male,1888-09-16,Russian Empire,Finland,Europe,1964-06-03,1
+1048,Fred Ramsdell,FALSE,male,1960-12-04,USA,USA,North America,NA,1
+193,Frédéric Joliot,FALSE,male,1900-03-19,France,France,Europe,1958-08-14,1
+573,Frédéric Mistral,FALSE,male,1830-09-08,France,France,Europe,1914-03-25,1
+463,Frédéric Passy,FALSE,male,1822-05-20,France,France,Europe,1912-06-12,1
+358,Frederick C. Robbins,FALSE,male,1916-08-25,USA,USA,North America,2003-08-04,1
+313,Frederick G. Banting,FALSE,male,1891-11-14,Canada,Canada,North America,1941-02-21,1
+148,Frederick Reines,FALSE,male,1918-03-16,USA,USA,North America,1998-08-26,1
+222,Frederick Sanger,FALSE,male,1918-08-13,United Kingdom,United Kingdom,Europe,2013-11-19,2
+179,Frederick Soddy,FALSE,male,1877-09-02,United Kingdom,United Kingdom,Europe,1956-09-22,1
+474,Fredrik Bajer,FALSE,male,1837-04-21,Denmark,Denmark,Europe,1922-01-22,1
+487,Fridtjof Nansen,FALSE,male,1861-10-10,Norway,Norway,Europe,1930-05-13,1
+190,Friedrich Bergius,FALSE,male,1884-10-11,Germany,Poland,Europe,1949-03-30,1
+685,Friedrich von Hayek,FALSE,male,1899-05-08,Austria,Austria,Europe,1992-03-23,1
+508,Friends Service Council,TRUE,NA,1647-00-00,United Kingdom,United Kingdom,NA,NA,1
+60,Frits Zernike,FALSE,male,1888-07-16,the Netherlands,the Netherlands,Europe,1966-03-10,1
+177,Fritz Haber,FALSE,male,1868-12-09,Prussia,Poland,Europe,1934-01-29,1
+355,Fritz Lipmann,FALSE,male,1899-06-12,Germany,Russia,Europe,1986-07-24,1
+181,Fritz Pregl,FALSE,male,1869-09-03,Austria-Hungary,Slovenia,Europe,1930-12-13,1
+659,Gabriel García Márquez,FALSE,male,1927-03-06,Colombia,Colombia,South America,2014-04-17,1
+12,Gabriel Lippmann,FALSE,male,1845-08-16,Luxembourg,Luxembourg,Europe,1921-07-13,1
+615,Gabriela Mistral,FALSE,female,1889-04-07,Chile,Chile,South America,1957-01-10,1
+734,Gao Xingjian,FALSE,male,1940-01-04,China,China,Asia,NA,1
+708,Gary Becker,FALSE,male,1930-12-02,USA,USA,North America,2014-05-03,1
+1036,Gary Ruvkun,FALSE,male,1952-00-00,USA,USA,North America,NA,1
+1038,Geoffrey Hinton,FALSE,male,1947-12-06,United Kingdom,United Kingdom,Europe,NA,1
+245,Geoffrey Wilkinson,FALSE,male,1921-07-14,United Kingdom,United Kingdom,Europe,1996-09-26,1
+1063,Georg Nagel,FALSE,male,1953-08-24,Germany,Germany,Europe,NA,1
+371,Georg von Békésy,FALSE,male,1899-06-03,Hungary,Hungary,Europe,1972-06-13,1
+253,Georg Wittig,FALSE,male,1897-06-16,Germany,Germany,Europe,1987-08-26,1
+744,George A. Akerlof,FALSE,male,1940-06-17,USA,USA,North America,NA,1
+280,George A. Olah,FALSE,male,1927-05-22,Hungary,Hungary,Europe,2017-03-08,1
+364,George Beadle,FALSE,male,1903-10-22,USA,USA,North America,1989-06-09,1
+596,George Bernard Shaw,FALSE,male,1856-07-26,Ireland,Ireland,Europe,1950-11-02,1
+514,George C. Marshall,FALSE,male,1880-12-31,USA,USA,North America,1959-10-16,1
+421,George D. Snell,FALSE,male,1903-12-19,USA,USA,North America,1996-06-06,1
+201,George de Hevesy,FALSE,male,1885-08-01,Austria-Hungary,Hungary,Europe,1966-07-05,1
+405,George E. Palade,FALSE,male,1912-11-19,Romania,Romania,Europe,2008-10-07,1
+840,George E. Smith,FALSE,male,1930-05-10,USA,USA,North America,2025-05-28,1
+805,George F. Smoot,FALSE,male,1945-02-20,USA,USA,North America,2025-09-18,1
+439,George H. Hitchings,FALSE,male,1905-04-18,USA,USA,North America,1998-02-27,1
+326,George H. Whipple,FALSE,male,1878-08-28,USA,USA,North America,1976-02-01,1
+696,George J. Stigler,FALSE,male,1911-01-17,USA,USA,North America,1991-12-01,1
+964,George P. Smith,FALSE,male,1941-03-10,USA,USA,North America,NA,1
+45,George Paget Thomson,FALSE,male,1892-05-03,United Kingdom,United Kingdom,Europe,1975-09-10,1
+235,George Porter,FALSE,male,1920-12-06,United Kingdom,United Kingdom,Europe,2002-08-31,1
+327,George R. Minot,FALSE,male,1885-12-02,USA,USA,North America,1950-02-25,1
+387,George Wald,FALSE,male,1906-11-18,USA,USA,North America,1997-04-12,1
+142,Georges Charpak,FALSE,male,1924-08-01,Poland,Poland,Europe,2010-09-29,1
+430,Georges J.F. Köhler,FALSE,male,1946-04-17,Germany,Germany,Europe,1995-03-01,1
+517,Georges Pire,FALSE,male,1910-02-10,Belgium,Belgium,Europe,1969-01-30,1
+398,Gerald M. Edelman,FALSE,male,1929-07-01,USA,USA,North America,2014-05-17,1
+697,Gerard Debreu,FALSE,male,1921-07-04,France,France,Europe,2004-12-31,1
+961,Gérard Mourou,FALSE,male,1944-06-22,France,France,Europe,NA,1
+158,Gerardus 't Hooft,FALSE,male,1946-07-05,the Netherlands,the Netherlands,Europe,NA,1
+128,Gerd Binnig,FALSE,male,1947-07-20,West Germany,Germany,Europe,NA,1
+334,Gerhard Domagk,FALSE,male,1895-10-30,Germany,Poland,Europe,1964-04-24,1
+816,Gerhard Ertl,FALSE,male,1936-10-10,Germany,Germany,Europe,NA,1
+240,Gerhard Herzberg,FALSE,male,1904-12-25,Germany,Germany,Europe,1999-03-03,1
+582,Gerhart Hauptmann,FALSE,male,1862-11-15,Prussia,Poland,Europe,1946-06-06,1
+438,Gertrude B. Elion,FALSE,female,1918-01-23,USA,USA,North America,1999-02-21,1
+344,Gerty Cori,FALSE,female,1896-08-15,Austria-Hungary,Czech Republic,Europe,1957-10-26,1
+1001,Giorgio Parisi,FALSE,male,1948-08-04,Italy,Italy,Europe,NA,1
+635,Giorgos Seferis,FALSE,male,1900-03-13,Ottoman Empire,Turkey,Asia,1971-09-20,1
+576,Giosuè Carducci,FALSE,male,1835-07-27,Tuscany,Italy,Europe,1907-02-16,1
+229,Giulio Natta,FALSE,male,1903-02-26,Italy,Italy,Europe,1979-05-02,1
+213,Glenn T. Seaborg,FALSE,male,1912-04-19,USA,USA,North America,1999-02-25,1
+418,Godfrey N. Hounsfield,FALSE,male,1919-08-28,United Kingdom,United Kingdom,Europe,2004-08-12,1
+810,Grameen Bank,TRUE,NA,1976-00-00,Bangladesh,Bangladesh,NA,NA,1
+597,Grazia Deledda,FALSE,female,1871-09-27,Italy,Italy,Europe,1936-08-15,1
+972,Gregg L. Semenza,FALSE,male,1956-07-12,USA,USA,North America,NA,1
+13,Guglielmo Marconi,FALSE,male,1874-04-25,Italy,Italy,Europe,1937-07-20,1
+1009,Guido W. Imbens,FALSE,male,1963-09-03,the Netherlands,the Netherlands,Europe,NA,1
+684,Gunnar Myrdal,FALSE,male,1898-12-06,Sweden,Sweden,Europe,1987-05-17,1
+461,Günter Blobel,FALSE,male,1936-05-21,Germany,Poland,Europe,2018-02-18,1
+676,Günter Grass,FALSE,male,1927-10-16,Free City of Danzig,Poland,Europe,2015-04-13,1
+17,Gustaf Dalén,FALSE,male,1869-11-30,Sweden,Sweden,Europe,1937-12-09,1
+31,Gustav Hertz,FALSE,male,1887-07-22,Germany,Germany,Europe,1975-10-30,1
+491,Gustav Stresemann,FALSE,male,1878-05-10,Germany,Germany,Europe,1929-10-03,1
+777,H. David Politzer,FALSE,male,1949-08-31,USA,USA,North America,NA,1
+389,H. Gobind Khorana,FALSE,male,1922-01-09,India,India,Asia,2011-11-09,1
+751,H. Robert Horvitz,FALSE,male,1947-05-08,USA,USA,North America,NA,1
+626,Halldór Laxness,FALSE,male,1902-04-23,Iceland,Iceland,Europe,1998-02-08,1
+416,Hamilton O. Smith,FALSE,male,1931-08-23,USA,USA,North America,2025-10-25,1
+1042,Han Kang,FALSE,female,1970-11-27,South Korea,South Korea,Asia,NA,1
+91,Hannes Alfvén,FALSE,male,1908-05-30,Sweden,Sweden,Europe,1995-04-02,1
+88,Hans Bethe,FALSE,male,1906-07-02,Germany,France,Europe,2005-03-06,1
+188,Hans Fischer,FALSE,male,1881-07-27,Germany,Germany,Europe,1945-03-31,1
+136,Hans G. Dehmelt,FALSE,male,1922-09-09,Prussia,Germany,Europe,2017-03-07,1
+354,Hans Krebs,FALSE,male,1900-08-25,Germany,Germany,Europe,1981-11-22,1
+329,Hans Spemann,FALSE,male,1869-06-27,Württemberg,Germany,Europe,1941-09-12,1
+187,Hans von Euler-Chelpin,FALSE,male,1873-02-15,Germany,Germany,Europe,1964-11-06,1
+823,Harald zur Hausen,FALSE,male,1936-03-11,Germany,Germany,Europe,2023-05-28,1
+192,Harold C. Urey,FALSE,male,1893-04-29,USA,USA,North America,1981-01-05,1
+441,Harold E. Varmus,FALSE,male,1939-12-18,USA,USA,North America,NA,1
+801,Harold Pinter,FALSE,male,1930-10-10,United Kingdom,United Kingdom,Europe,2008-12-24,1
+704,Harry M. Markowitz,FALSE,male,1927-08-24,USA,USA,North America,2023-06-22,1
+650,Harry Martinson,FALSE,male,1904-05-06,Sweden,Sweden,Europe,1978-02-11,1
+272,Hartmut Michel,FALSE,male,1948-07-18,West Germany,Germany,Europe,NA,1
+985,Harvey J. Alter,FALSE,male,1935-09-12,USA,USA,North America,NA,1
+18,Heike Kamerlingh Onnes,FALSE,male,1853-09-21,the Netherlands,the Netherlands,Europe,1926-02-21,1
+647,Heinrich Böll,FALSE,male,1917-12-21,Germany,Germany,Europe,1985-07-16,1
+129,Heinrich Rohrer,FALSE,male,1933-06-06,Switzerland,Switzerland,Europe,2013-05-16,1
+184,Heinrich Wieland,FALSE,male,1877-06-04,Germany,Germany,Europe,1957-08-05,1
+2,Hendrik A. Lorentz,FALSE,male,1853-07-18,the Netherlands,the Netherlands,Europe,1928-02-04,1
+1065,Henri B. Kagan,FALSE,male,1930-12-15,France,France,Europe,NA,1
+4,Henri Becquerel,FALSE,male,1852-12-15,France,France,Europe,1908-08-25,1
+600,Henri Bergson,FALSE,male,1859-10-18,France,France,Europe,1941-01-04,1
+481,Henri La Fontaine,FALSE,male,1854-04-22,Belgium,Belgium,Europe,1943-05-14,1
+165,Henri Moissan,FALSE,male,1852-09-28,France,France,Europe,1907-02-20,1
+335,Henrik Dam,FALSE,male,1895-02-21,Denmark,Denmark,Europe,1976-04-17,1
+587,Henrik Pontoppidan,FALSE,male,1857-07-24,Denmark,Denmark,Europe,1943-08-21,1
+462,Henry Dunant,FALSE,male,1828-05-08,Switzerland,Switzerland,Europe,1910-10-30,1
+530,Henry Kissinger,FALSE,male,1923-05-27,Germany,Germany,Europe,2023-11-29,1
+260,Henry Taube,FALSE,male,1915-11-30,Canada,Canada,North America,2005-11-16,1
+139,Henry W. Kendall,FALSE,male,1926-12-09,USA,USA,North America,1999-02-15,1
+575,Henryk Sienkiewicz,FALSE,male,1846-05-05,Poland,Poland,Europe,1916-11-15,1
+262,Herbert A. Hauptman,FALSE,male,1917-02-14,USA,USA,North America,2011-10-23,1
+252,Herbert C. Brown,FALSE,male,1912-05-22,United Kingdom,United Kingdom,Europe,2004-12-19,1
+727,Herbert Kroemer,FALSE,male,1928-08-25,Germany,Germany,Europe,2024-03-08,1
+338,Herbert S. Gasser,FALSE,male,1888-07-05,USA,USA,North America,1963-05-11,1
+691,Herbert Simon,FALSE,male,1916-06-15,USA,USA,North America,2001-02-09,1
+617,Hermann Hesse,FALSE,male,1877-07-02,Germany,Germany,Europe,1962-08-09,1
+342,Hermann J. Muller,FALSE,male,1890-12-21,USA,USA,North America,1967-04-05,1
+216,Hermann Staudinger,FALSE,male,1881-03-23,Germany,Germany,Europe,1965-09-08,1
+844,Herta Müller,FALSE,female,1953-08-17,Romania,Romania,Europe,NA,1
+731,Hideki Shirakawa,FALSE,male,1936-08-20,Japan,Japan,Asia,2026-08-24,1
+54,Hideki Yukawa,FALSE,male,1907-01-23,Japan,Japan,Asia,1981-09-08,1
+907,Hiroshi Amano,FALSE,male,1960-09-11,Japan,Japan,Asia,NA,1
+485,Hjalmar Branting,FALSE,male,1860-11-23,Sweden,Sweden,Europe,1925-02-24,1
+156,Horst L. Störmer,FALSE,male,1949-04-06,West Germany,Germany,Europe,NA,1
+408,Howard M. Temin,FALSE,male,1934-12-10,USA,USA,North America,1994-02-09,1
+359,Hugo Theorell,FALSE,male,1903-07-06,Sweden,Sweden,Europe,1982-08-15,1
+71,Igor Y. Tamm,FALSE,male,1895-07-08,Russia,Russia,Europe,1971-04-12,1
+721,Il´ja M. Frank,FALSE,male,1908-10-23,Russia,Russia,Europe,1990-06-22,1
+301,Ilya Mechnikov,FALSE,male,1845-05-15,Russian Empire,Ukraine,Europe,1916-07-15,1
+250,Ilya Prigogine,FALSE,male,1917-01-25,Russia,Russia,Europe,2003-05-28,1
+761,Imre Kertész,FALSE,male,1929-11-09,Hungary,Hungary,Europe,2016-03-31,1
+467,Institute of International Law,TRUE,NA,1873-00-00,Belgium,Belgium,NA,NA,1
+818,Intergovernmental Panel on Climate Change,TRUE,NA,1988-00-00,USA,USA,NA,NA,1
+797,International Atomic Energy Agency,TRUE,NA,1957-00-00,Austria,Austria,NA,NA,1
+948,International Campaign to Abolish Nuclear Weapons,TRUE,NA,2007-00-00,Australia,Australia,NA,NA,1
+564,International Campaign to Ban Landmines,TRUE,NA,1992-00-00,USA,USA,NA,NA,1
+482,International Committee of the Red Cross,TRUE,NA,1863-00-00,Switzerland,Switzerland,NA,NA,3
+527,International Labour Organization,TRUE,NA,1919-00-00,Switzerland,Switzerland,NA,NA,1
+547,International Physicians for the Prevention of Nuclear War,TRUE,NA,1980-00-00,USA,USA,NA,NA,1
+194,Irène Joliot-Curie,FALSE,female,1897-09-12,France,France,Europe,1956-03-17,1
+191,Irving Langmuir,FALSE,male,1881-01-31,USA,USA,North America,1957-08-16,1
+781,Irwin Rose,FALSE,male,1926-07-16,USA,USA,North America,2015-06-03,1
+654,Isaac Bashevis Singer,FALSE,male,1904-07-14,Russian Empire,Poland,Europe,1991-07-24,1
+906,Isamu Akasaki,FALSE,male,1929-01-30,Japan,Japan,Asia,2021-04-01,1
+49,Isidor Isaac Rabi,FALSE,male,1898-07-29,Austria-Hungary,Poland,Europe,1988-01-11,1
+606,Ivan Bunin,FALSE,male,1870-10-22,Russia,Russia,Europe,1953-11-08,1
+296,Ivan Pavlov,FALSE,male,1849-09-14,Russia,Russia,Europe,1936-02-27,1
+98,Ivar Giaever,FALSE,male,1929-04-05,Norway,Norway,Europe,2025-06-20,1
+633,Ivo Andrić,FALSE,male,1892-10-10,Bosnia,Bosnia and Herzegovina,Europe,1975-03-13,1
+130,J. Georg Bednorz,FALSE,male,1950-05-16,West Germany,Germany,Europe,NA,1
+80,J. Hans D. Jensen,FALSE,male,1907-06-25,Germany,Germany,Europe,1973-02-11,1
+763,J. M. Coetzee,FALSE,male,1940-02-09,South Africa,South Africa,Africa,NA,1
+440,J. Michael Bishop,FALSE,male,1936-02-22,USA,USA,North America,2026-03-20,1
+930,J. Michael Kosterlitz,FALSE,male,1943-06-22,United Kingdom,United Kingdom,Europe,NA,1
+790,J. Robin Warren,FALSE,male,1937-06-11,Australia,Australia,Oceania,2024-07-23,1
+10,J.J. Thomson,FALSE,male,1856-12-18,United Kingdom,United Kingdom,Europe,1940-08-30,1
+592,Jacinto Benavente,FALSE,male,1866-08-12,Spain,Spain,Europe,1954-07-14,1
+728,Jack Kilby,FALSE,male,1923-11-08,USA,USA,North America,2005-06-20,1
+134,Jack Steinberger,FALSE,male,1921-05-25,Germany,Germany,Europe,2020-12-12,1
+837,Jack W. Szostak,FALSE,male,1952-11-09,United Kingdom,United Kingdom,Europe,NA,1
+160,Jacobus H. van 't Hoff,FALSE,male,1852-08-30,the Netherlands,the Netherlands,Europe,1911-03-01,1
+944,Jacques Dubochet,FALSE,male,1942-06-08,Switzerland,Switzerland,Europe,NA,1
+382,Jacques Monod,FALSE,male,1910-02-09,France,France,Europe,1976-05-31,1
+715,James A. Mirrlees,FALSE,male,1936-07-05,Scotland,Scotland,Europe,2018-08-29,1
+1046,James A. Robinson,FALSE,male,1960-00-00,NA,NA,NA,NA,1
+204,James B. Sumner,FALSE,male,1887-11-19,USA,USA,North America,1955-08-12,1
+41,James Chadwick,FALSE,male,1891-10-20,United Kingdom,United Kingdom,Europe,1974-07-24,1
+116,James Cronin,FALSE,male,1931-09-29,USA,USA,North America,2016-08-25,1
+690,James E. Meade,FALSE,male,1907-06-23,United Kingdom,United Kingdom,Europe,1995-12-22,1
+884,James E. Rothman,FALSE,male,1950-11-03,USA,USA,North America,NA,1
+30,James Franck,FALSE,male,1882-08-26,Germany,Germany,Europe,1964-05-21,1
+732,James J. Heckman,FALSE,male,1944-04-19,USA,USA,North America,NA,1
+700,James M. Buchanan Jr.,FALSE,male,1919-10-03,USA,USA,North America,2013-01-09,1
+958,James P. Allison,FALSE,male,1948-08-07,USA,USA,North America,NA,1
+973,James Peebles,FALSE,male,1935-04-25,Canada,Canada,North America,NA,1
+104,James Rainwater,FALSE,male,1917-12-09,USA,USA,North America,1986-05-31,1
+695,James Tobin,FALSE,male,1918-03-05,USA,USA,North America,2002-03-11,1
+373,James Watson,FALSE,male,1928-04-06,USA,USA,North America,2025-11-06,1
+678,Jan Tinbergen,FALSE,male,1903-04-12,the Netherlands,the Netherlands,Europe,1994-06-09,1
+496,Jane Addams,FALSE,female,1860-09-06,USA,USA,North America,1935-05-21,1
+223,Jaroslav Heyrovsky,FALSE,male,1890-12-20,Austria-Hungary,Czech Republic,Europe,1967-03-27,1
+661,Jaroslav Seifert,FALSE,male,1901-09-23,Austria-Hungary,Czech Republic,Europe,1986-01-10,1
+32,Jean Baptiste Perrin,FALSE,male,1870-09-30,France,France,Europe,1942-04-17,1
+420,Jean Dausset,FALSE,male,1916-10-19,France,France,Europe,2009-06-06,1
+915,Jean Tirole,FALSE,male,1953-08-09,France,France,Europe,NA,1
+832,Jean-Marie Gustave Le Clézio,FALSE,male,1940-04-13,France,France,Europe,NA,1
+268,Jean-Marie Lehn,FALSE,male,1939-09-30,France,France,Europe,NA,1
+637,Jean-Paul Sartre,FALSE,male,1905-06-21,France,France,Europe,1980-04-15,1
+931,Jean-Pierre Sauvage,FALSE,male,1944-10-21,France,France,Europe,NA,1
+938,Jeffrey C. Hall,FALSE,male,1945-05-03,USA,USA,North America,NA,1
+992,Jennifer A. Doudna,FALSE,female,1964-02-19,USA,USA,North America,NA,1
+289,Jens C. Skou,FALSE,male,1918-10-08,Denmark,Denmark,Europe,2018-05-28,1
+138,Jerome I. Friedman,FALSE,male,1930-03-28,USA,USA,North America,NA,1
+263,Jerome Karle,FALSE,male,1918-06-18,USA,USA,North America,2013-06-06,1
+762,Jimmy Carter,FALSE,male,1924-10-01,USA,USA,North America,2024-12-29,1
+945,Joachim Frank,FALSE,male,1940-09-12,Germany,Germany,Europe,NA,1
+565,Jody Williams,FALSE,female,1950-10-09,USA,USA,North America,NA,1
+1058,Joel Mokyr,FALSE,male,1946-07-26,the Netherlands,the Netherlands,Europe,NA,1
+270,Johann Deisenhofer,FALSE,male,1943-09-30,Germany,Germany,Europe,NA,1
+15,Johannes Diderik van der Waals,FALSE,male,1837-11-23,the Netherlands,the Netherlands,Europe,1923-03-08,1
+316,Johannes Fibiger,FALSE,male,1867-04-23,Denmark,Denmark,Europe,1928-01-30,1
+24,Johannes Stark,FALSE,male,1874-04-15,Germany,Germany,Europe,1957-06-21,1
+614,Johannes V. Jensen,FALSE,male,1873-01-20,Denmark,Denmark,Europe,1950-11-25,1
+756,John B. Fenn,FALSE,male,1917-06-15,USA,USA,North America,2010-12-10,1
+976,John B. Goodenough,FALSE,male,1922-07-25,Germany,Germany,Europe,2023-06-25,1
+66,John Bardeen,FALSE,male,1908-05-23,USA,USA,North America,1991-01-30,2
+711,John C. Harsanyi,FALSE,male,1920-05-29,Hungary,Hungary,Europe,2000-08-09,1
+227,John C. Kendrew,FALSE,male,1917-03-24,United Kingdom,United Kingdom,Europe,1997-08-23,1
+804,John C. Mather,FALSE,male,1946-08-07,USA,USA,North America,NA,1
+266,John C. Polanyi,FALSE,male,1929-01-23,Germany,Germany,Europe,NA,1
+1050,John Clarke,FALSE,male,1942-00-00,United Kingdom,United Kingdom,Europe,NA,1
+1013,John Clauser,FALSE,male,1942-12-01,USA,USA,North America,NA,1
+56,John Cockcroft,FALSE,male,1897-05-27,United Kingdom,United Kingdom,Europe,1967-09-18,1
+247,John Cornforth,FALSE,male,1917-09-07,Australia,Australia,Oceania,2013-12-08,1
+752,John E. Sulston,FALSE,male,1942-03-27,United Kingdom,United Kingdom,Europe,2018-03-06,1
+288,John E. Walker,FALSE,male,1941-01-07,United Kingdom,United Kingdom,Europe,NA,1
+356,John F. Enders,FALSE,male,1897-02-10,USA,USA,North America,1985-09-08,1
+712,John F. Nash Jr.,FALSE,male,1928-06-13,USA,USA,North America,2015-05-23,1
+605,John Galsworthy,FALSE,male,1867-08-14,United Kingdom,United Kingdom,Europe,1933-01-31,1
+205,John H. Northrop,FALSE,male,1891-07-05,USA,USA,North America,1987-05-27,1
+109,John H. Van Vleck,FALSE,male,1899-03-13,USA,USA,North America,1980-10-27,1
+566,John Hume,FALSE,male,1937-01-18,Northern Ireland,Northern Ireland,Europe,2020-08-03,1
+1037,John J. Hopfield,FALSE,male,1933-07-15,USA,USA,North America,NA,1
+1041,John Jumper,FALSE,male,1985-00-00,USA,USA,North America,NA,1
+792,John L. Hall,FALSE,male,1934-08-21,USA,USA,North America,NA,1
+1052,John M. Martinis,FALSE,male,1958-00-00,NA,NA,NA,NA,1
+314,John Macleod,FALSE,male,1876-09-06,Scotland,Scotland,Europe,1935-03-16,1
+903,John O'Keefe,FALSE,male,1939-11-18,USA,USA,North America,NA,1
+291,John Pople,FALSE,male,1925-10-31,United Kingdom,United Kingdom,Europe,2004-03-15,1
+681,John R. Hicks,FALSE,male,1904-04-08,United Kingdom,United Kingdom,Europe,1989-05-20,1
+507,John R. Mott,FALSE,male,1865-05-25,USA,USA,North America,1955-01-31,1
+427,John R. Vane,FALSE,male,1927-03-29,United Kingdom,United Kingdom,Europe,2004-11-19,1
+634,John Steinbeck,FALSE,male,1902-02-27,USA,USA,North America,1968-12-20,1
+1032,Jon Fosse,FALSE,male,1959-09-29,Norway,Norway,Europe,NA,1
+574,José Echegaray,FALSE,male,1832-04-19,Spain,Spain,Europe,1916-09-04,1
+563,José Ramos-Horta,FALSE,male,1949-12-26,East Timor,East Timor,Oceania,NA,1
+675,José Saramago,FALSE,male,1922-11-16,Portugal,Portugal,Europe,2010-06-18,1
+664,Joseph Brodsky,FALSE,male,1940-05-24,USSR,Russia,Europe,1996-01-28,1
+442,Joseph E. Murray,FALSE,male,1919-04-01,USA,USA,North America,2012-11-26,1
+746,Joseph E. Stiglitz,FALSE,male,1943-02-09,USA,USA,North America,NA,1
+337,Joseph Erlanger,FALSE,male,1874-01-05,USA,USA,North America,1965-12-05,1
+144,Joseph H. Taylor Jr.,FALSE,male,1941-03-29,USA,USA,North America,NA,1
+433,Joseph L. Goldstein,FALSE,male,1940-04-18,USA,USA,North America,NA,1
+560,Joseph Rotblat,FALSE,male,1908-11-04,Russian Empire,Poland,Europe,2005-08-31,1
+1008,Joshua D. Angrist,FALSE,male,1960-09-18,USA,USA,North America,NA,1
+366,Joshua Lederberg,FALSE,male,1925-05-23,USA,USA,North America,2008-02-02,1
+934,Juan Manuel Santos,FALSE,male,1951-08-10,Colombia,Colombia,South America,NA,1
+627,Juan Ramón Jiménez,FALSE,male,1881-12-24,Spain,Spain,Europe,1958-05-29,1
+862,Jules A. Hoffmann,FALSE,male,1941-08-02,Luxembourg,Luxembourg,Europe,NA,1
+309,Jules Bordet,FALSE,male,1870-06-13,Belgium,Belgium,Europe,1961-04-06,1
+85,Julian Schwinger,FALSE,male,1918-02-12,USA,USA,North America,1994-07-16,1
+396,Julius Axelrod,FALSE,male,1912-05-30,USA,USA,North America,2004-12-29,1
+317,Julius Wagner-Jauregg,FALSE,male,1857-03-07,Austria,Austria,Europe,1940-09-27,1
+131,K. Alex Müller,FALSE,male,1927-04-20,Switzerland,Switzerland,Europe,2023-01-09,1
+743,K. Barry Sharpless,FALSE,male,1941-04-28,USA,USA,North America,NA,2
+120,Kai M. Siegbahn,FALSE,male,1918-04-20,Sweden,Sweden,Europe,2007-07-20,1
+913,Kailash Satyarthi,FALSE,male,1954-01-11,India,India,Asia,NA,1
+1061,Karl Deisseroth,FALSE,male,1971-11-18,USA,USA,North America,NA,1
+586,Karl Gjellerup,FALSE,male,1857-06-02,Denmark,Denmark,Europe,1919-10-11,1
+321,Karl Landsteiner,FALSE,male,1868-06-14,Austrian Empire,Austria,Europe,1943-06-26,1
+400,Karl von Frisch,FALSE,male,1886-11-20,Austria,Austria,Europe,1982-06-12,1
+228,Karl Ziegler,FALSE,male,1898-11-26,Germany,Germany,Europe,1973-08-12,1
+278,Kary B. Mullis,FALSE,male,1944-12-28,USA,USA,North America,2019-08-07,1
+1024,Katalin Karikó,FALSE,female,1955-01-17,Hungary,Hungary,Europe,NA,1
+947,Kazuo Ishiguro,FALSE,male,1954-11-08,Japan,Japan,Asia,NA,1
+386,Keffer Hartline,FALSE,male,1903-12-22,USA,USA,North America,1983-03-17,1
+257,Kenichi Fukui,FALSE,male,1918-10-04,Japan,Japan,Asia,1998-01-09,1
+121,Kenneth G. Wilson,FALSE,male,1936-06-08,USA,USA,North America,2013-06-15,1
+682,Kenneth J. Arrow,FALSE,male,1921-08-23,USA,USA,North America,2017-02-21,1
+1066,Kenso Soai,FALSE,male,1950-00-00,Japan,Japan,Asia,NA,1
+671,Kenzaburo Oe,FALSE,male,1935-01-31,Japan,Japan,Asia,2023-03-03,1
+725,Kim Dae-jung,FALSE,male,1924-01-08,Korea,South Korea,Asia,2009-08-18,1
+943,Kip S. Thorne,FALSE,male,1940-06-01,USA,USA,North America,NA,1
+473,Klas Pontus Arnoldson,FALSE,male,1844-10-27,Sweden,Sweden,Europe,1916-02-20,1
+1000,Klaus Hasselmann,FALSE,male,1931-10-25,Germany,Germany,Europe,NA,1
+126,Klaus von Klitzing,FALSE,male,1943-06-28,German-occupied Poland,Poland,Europe,NA,1
+589,Knut Hamsun,FALSE,male,1859-08-04,Norway,Norway,Europe,1952-02-19,1
+749,Kofi Annan,FALSE,male,1938-04-08,Gold Coast,Ghana,Africa,2018-08-18,1
+757,Koichi Tanaka,FALSE,male,1959-08-03,Japan,Japan,Asia,NA,1
+378,Konrad Bloch,FALSE,male,1912-01-21,Germany,Poland,Europe,2000-10-15,1
+401,Konrad Lorenz,FALSE,male,1903-11-07,Austria,Austria,Europe,1989-02-27,1
+850,Konstantin Novoselov,FALSE,male,1974-08-23,Russia,Russia,Europe,NA,1
+211,Kurt Alder,FALSE,male,1902-07-10,Prussia,Poland,Europe,1958-06-20,1
+758,Kurt Wüthrich,FALSE,male,1938-10-04,Switzerland,Switzerland,Europe,NA,1
+236,Lars Onsager,FALSE,male,1903-11-27,Norway,Norway,Europe,1976-10-05,1
+895,Lars Peter Hansen,FALSE,male,1952-10-26,USA,USA,North America,NA,1
+1056,László Krasznahorkai,FALSE,male,1954-01-05,Hungary,Hungary,Europe,NA,1
+21,Lawrence Bragg,FALSE,male,1890-03-31,Australia,Australia,Oceania,1971-07-01,1
+694,Lawrence R. Klein,FALSE,male,1920-09-14,USA,USA,North America,2013-10-20,1
+531,Le Duc Tho ,FALSE,male,1911-10-14,Vietnam,Vietnam,Asia,1990-10-13,1
+523,League of Red Cross Societies,TRUE,NA,1919-00-00,France,France,NA,NA,1
+545,Lech Wałęsa,FALSE,male,1943-09-29,Poland,Poland,Europe,NA,1
+735,Leland Hartwell,FALSE,male,1939-10-30,USA,USA,North America,NA,1
+97,Leo Esaki,FALSE,male,1925-03-12,Japan,Japan,Asia,NA,1
+484,Léon Bourgeois,FALSE,male,1851-05-21,France,France,Europe,1925-09-29,1
+512,Léon Jouhaux,FALSE,male,1879-07-01,France,France,Europe,1954-04-28,1
+132,Leon M. Lederman,FALSE,male,1922-07-15,USA,USA,North America,2018-10-03,1
+95,Leon N. Cooper,FALSE,male,1930-02-28,USA,USA,North America,2024-10-23,1
+820,Leonid Hurwicz,FALSE,male,1917-08-21,Russia,Russia,Europe,2008-06-24,1
+686,Leonid Vitaliyevich Kantorovich,FALSE,male,1912-01-19,Russian Empire,Russia,Europe,1986-04-07,1
+200,Leopold Ruzicka,FALSE,male,1887-09-13,Austria-Hungary,Croatia,Europe,1976-09-26,1
+516,Lester Bowles Pearson,FALSE,male,1897-04-23,Canada,Canada,North America,1972-12-27,1
+77,Lev Landau,FALSE,male,1908-01-22,Russian Empire,Azerbaijan,Asia,1968-04-01,1
+870,Leymah Gbowee,FALSE,female,1972-02-01,Liberia,Liberia,Africa,NA,1
+775,Linda B. Buck,FALSE,female,1947-01-29,USA,USA,North America,NA,1
+217,Linus Pauling,FALSE,male,1901-02-28,USA,USA,North America,1994-08-19,2
+855,Liu Xiaobo,FALSE,male,1955-12-28,China,China,Asia,2017-07-13,1
+883,Lloyd S. Shapley,FALSE,male,1923-06-02,USA,USA,North America,2016-03-12,1
+510,Lord Boyd Orr,FALSE,male,1880-09-23,Scotland,Scotland,Europe,1971-06-25,1
+8,Lord Rayleigh,FALSE,male,1842-11-12,United Kingdom,United Kingdom,Europe,1919-06-30,1
+221,Lord Todd,FALSE,male,1907-10-02,Scotland,Scotland,Europe,1997-01-10,1
+1030,Louis Brus,FALSE,male,1943-00-00,USA,USA,North America,2026-01-11,1
+36,Louis de Broglie,FALSE,male,1892-08-15,France,France,Europe,1987-03-19,1
+459,Louis J. Ignarro,FALSE,male,1941-05-31,USA,USA,North America,NA,1
+92,Louis Néel,FALSE,male,1904-11-22,France,France,Europe,2000-11-17,1
+472,Louis Renault,FALSE,male,1843-05-21,France,France,Europe,1918-02-08,1
+993,Louise Glück,FALSE,female,1943-04-22,USA,USA,North America,2023-10-13,1
+825,Luc Montagnier,FALSE,male,1932-08-18,France,France,Europe,2022-02-08,1
+493,Ludwig Quidde,FALSE,male,1858-03-23,Germany,Germany,Europe,1941-03-04,1
+607,Luigi Pirandello,FALSE,male,1867-06-28,Italy,Italy,Europe,1936-12-10,1
+89,Luis Alvarez,FALSE,male,1911-06-13,USA,USA,North America,1988-09-01,1
+239,Luis Leloir,FALSE,male,1906-09-06,France,France,Europe,1987-12-02,1
+977,M. Stanley Whittingham,FALSE,male,1941-12-22,United Kingdom,United Kingdom,Europe,NA,1
+536,Mairead Corrigan,FALSE,female,1944-01-27,Northern Ireland,Northern Ireland,Europe,NA,1
+827,Makoto Kobayashi,FALSE,male,1944-04-07,Japan,Japan,Asia,NA,1
+914,Malala Yousafzai,FALSE,female,1997-07-12,Pakistan,Pakistan,Asia,NA,1
+233,Manfred Eigen,FALSE,male,1927-05-09,Germany,Germany,Europe,2019-02-06,1
+29,Manne Siegbahn,FALSE,male,1886-12-03,Sweden,Sweden,Europe,1978-09-26,1
+1057,Maria Corina Machado,FALSE,female,1967-00-00,Venezuela,Venezuela,South America,NA,1
+79,Maria Goeppert Mayer,FALSE,female,1906-06-28,Germany,Poland,Europe,1972-02-20,1
+1005,Maria Ressa,FALSE,female,1963-10-02,Philippines,Philippines,Asia,NA,1
+6,Marie Curie,FALSE,female,1867-11-07,Russian Empire,Poland,Europe,1934-07-04,2
+282,Mario J. Molina,FALSE,male,1943-03-19,Mexico,Mexico,North America,2020-10-07,1
+811,Mario R. Capecchi,FALSE,male,1937-10-06,Italy,Italy,Europe,NA,1
+854,Mario Vargas Llosa,FALSE,male,1936-03-28,Peru,Peru,South America,2025-04-13,1
+390,Marshall W. Nirenberg,FALSE,male,1927-04-10,USA,USA,North America,2010-01-15,1
+830,Martin Chalfie,FALSE,male,1947-01-15,USA,USA,North America,NA,1
+889,Martin Karplus,FALSE,male,1930-03-15,Austria,Austria,Europe,2024-12-28,1
+147,Martin L. Perl,FALSE,male,1927-06-24,USA,USA,North America,2014-09-30,1
+524,Martin Luther King Jr.,FALSE,male,1929-01-15,USA,USA,North America,1968-04-04,1
+451,Martin Rodbell,FALSE,male,1925-12-01,USA,USA,North America,1998-12-07,1
+100,Martin Ryle,FALSE,male,1918-09-27,United Kingdom,United Kingdom,Europe,1984-10-14,1
+159,Martinus J.G. Veltman,FALSE,male,1931-06-27,the Netherlands,the Netherlands,Europe,2021-01-04,1
+833,Martti Ahtisaari,FALSE,male,1937-06-23,Finland,Finland,Europe,2023-10-16,1
+1047,Mary E. Brunkow,FALSE,female,1961-04-23,USA,USA,North America,NA,1
+754,Masatoshi Koshiba,FALSE,male,1926-09-19,Japan,Japan,Asia,2020-11-12,1
+702,Maurice Allais,FALSE,male,1911-05-31,France,France,Europe,2010-10-09,1
+581,Maurice Maeterlinck,FALSE,male,1862-08-29,Belgium,Belgium,Europe,1949-05-06,1
+374,Maurice Wilkins,FALSE,male,1916-12-15,New Zealand,New Zealand,Oceania,2004-10-05,1
+61,Max Born,FALSE,male,1882-12-11,Germany,Poland,Europe,1970-01-05,1
+391,Max Delbrück,FALSE,male,1906-09-04,Germany,Germany,Europe,1981-03-09,1
+226,Max F. Perutz,FALSE,male,1914-05-19,Austria,Austria,Europe,2002-02-06,1
+23,Max Planck,FALSE,male,1858-04-23,Schleswig,Germany,Europe,1947-10-04,1
+352,Max Theiler,FALSE,male,1899-01-30,South Africa,South Africa,Africa,1972-08-11,1
+19,Max von Laue,FALSE,male,1879-10-09,Germany,Germany,Europe,1960-04-23,1
+904,May-Britt Moser,FALSE,female,1963-01-04,Norway,Norway,Europe,NA,1
+225,Melvin Calvin,FALSE,male,1911-04-08,USA,USA,North America,1997-01-08,1
+133,Melvin Schwartz,FALSE,male,1932-11-02,USA,USA,North America,2006-08-28,1
+1019,Memorial,TRUE,NA,1987-00-00,Russia,Russia,NA,NA,1
+539,Menachem Begin,FALSE,male,1913-08-16,Russian Empire,Belarus,Europe,1992-03-09,1
+705,Merton H. Miller,FALSE,male,1923-05-16,USA,USA,North America,2000-06-03,1
+986,Michael Houghton,FALSE,male,1949-00-00,United Kingdom,United Kingdom,Europe,NA,1
+984,Michael Kremer,FALSE,male,1964-11-12,USA,USA,North America,NA,1
+890,Michael Levitt,FALSE,male,1947-05-09,South Africa,South Africa,Africa,NA,1
+939,Michael Rosbash,FALSE,male,1944-03-07,USA,USA,North America,NA,1
+432,Michael S. Brown,FALSE,male,1941-04-13,USA,USA,North America,NA,1
+279,Michael Smith,FALSE,male,1932-04-26,United Kingdom,United Kingdom,Europe,2000-10-04,1
+940,Michael W. Young,FALSE,male,1949-03-28,USA,USA,North America,NA,1
+1070,Michael Woodford,FALSE,male,1955-00-00,USA,USA,North America,NA,1
+1051,Michel H. Devoret,FALSE,male,1953-00-00,France,France,Europe,NA,1
+974,Michel Mayor,FALSE,male,1942-01-12,Switzerland,Switzerland,Europe,NA,1
+641,Miguel Angel Asturias,FALSE,male,1899-10-19,Guatemala,Guatemala,North America,1974-06-09,1
+552,Mikhail Gorbachev,FALSE,male,1931-03-02,USSR,Russia,Europe,2022-08-30,1
+638,Mikhail Sholokhov,FALSE,male,1905-05-24,Russia,Russia,Europe,1984-02-21,1
+688,Milton Friedman,FALSE,male,1912-07-31,USA,USA,North America,2006-11-16,1
+880,Mo Yan,FALSE,male,1956-03-25,China,China,Asia,NA,1
+798,Mohamed ElBaradei,FALSE,male,1942-06-17,Egypt,Egypt,Africa,NA,1
+1016,Morten Meldal,FALSE,male,1954-01-16,Denmark,Denmark,Europe,NA,1
+540,Mother Teresa,FALSE,female,1910-08-26,Ottoman Empire,North Macedonia,Europe,1997-09-05,1
+1029,Moungi Bawendi,FALSE,male,1961-00-00,France,France,Europe,NA,1
+809,Muhammad Yunus,FALSE,male,1940-06-28,British India,Bangladesh,Asia,NA,1
+90,Murray Gell-Mann,FALSE,male,1929-09-15,USA,USA,North America,2019-05-24,1
+718,Myron Scholes,FALSE,male,1941-07-01,Canada,Canada,North America,NA,1
+967,Nadia Murad,FALSE,female,1993-03-10,Iraq,Iraq,Asia,NA,1
+668,Nadine Gordimer,FALSE,female,1923-11-20,South Africa,South Africa,Africa,2014-07-13,1
+665,Naguib Mahfouz,FALSE,male,1911-12-11,Egypt,Egypt,Africa,2006-08-30,1
+503,Nansen International Office for Refugees,TRUE,NA,1921-00-00,Switzerland,Switzerland,NA,NA,1
+1033,Narges Mohammadi,FALSE,female,1972-04-21,Iran,Iran,Asia,NA,1
+495,Nathan Söderblom,FALSE,male,1866-01-15,Sweden,Sweden,Europe,1931-07-12,1
+925,National Dialogue Quartet,TRUE,NA,NA,NA,NA,NA,NA,1
+1068,Navi Pillay,FALSE,female,1941-09-23,South Africa,South Africa,Africa,NA,1
+640,Nelly Sachs,FALSE,female,1891-12-10,Germany,Germany,Europe,1970-05-12,1
+555,Nelson Mandela,FALSE,male,1918-07-18,South Africa,South Africa,Africa,2013-12-05,1
+497,Nicholas Murray Butler,FALSE,male,1862-04-02,USA,USA,North America,1947-12-07,1
+118,Nicolaas Bloembergen,FALSE,male,1920-03-11,the Netherlands,the Netherlands,Europe,2017-09-05,1
+82,Nicolay G. Basov,FALSE,male,1922-12-14,USSR,Russia,Europe,2001-07-01,1
+27,Niels Bohr,FALSE,male,1885-10-07,Denmark,Denmark,Europe,1962-11-18,1
+429,Niels K. Jerne,FALSE,male,1911-12-23,United Kingdom,United Kingdom,Europe,1994-10-07,1
+295,Niels Ryberg Finsen,FALSE,male,1860-12-15,Faroe Islands (Denmark),Faroe Islands (Denmark),Europe,1904-09-24,1
+1043,Nihon Hidankyo,TRUE,NA,1956-08-10,Japan,Japan,NA,NA,1
+402,Nikolaas Tinbergen,FALSE,male,1907-04-15,the Netherlands,the Netherlands,Europe,1988-12-21,1
+220,Nikolay Semenov,FALSE,male,1896-04-03,Russia,Russia,Europe,1986-09-25,1
+528,Norman Borlaug,FALSE,male,1914-03-25,USA,USA,North America,2009-09-12,1
+135,Norman F. Ramsey,FALSE,male,1915-08-27,USA,USA,North America,2011-11-04,1
+196,Norman Haworth,FALSE,male,1883-03-19,United Kingdom,United Kingdom,Europe,1950-03-19,1
+667,Octavio Paz,FALSE,male,1914-03-31,Mexico,Mexico,North America,1998-04-19,1
+238,Odd Hassel,FALSE,male,1897-05-17,Norway,Norway,Europe,1981-05-11,1
+655,Odysseus Elytis,FALSE,male,1911-11-02,Crete,Greece,Europe,1996-03-18,1
+515,Office of the United Nations High Commissioner for Refugees,TRUE,NA,1950-12-14,Switzerland,Switzerland,NA,NA,2
+979,Olga Tokarczuk,FALSE,female,1962-01-29,Poland,Poland,Europe,NA,1
+847,Oliver E. Williamson,FALSE,male,1932-09-27,USA,USA,North America,NA,1
+935,Oliver Hart,FALSE,male,1948-10-09,United Kingdom,United Kingdom,Europe,NA,1
+813,Oliver Smithies,FALSE,male,1925-06-23,United Kingdom,United Kingdom,Europe,2017-01-10,1
+1055,Omar M. Yaghi,FALSE,male,1965-02-09,Jordan,Jordan,Asia,NA,1
+893,Organisation for the Prohibition of Chemical Weapons,TRUE,NA,1997-00-00,NA,NA,NA,NA,1
+808,Orhan Pamuk,FALSE,male,1952-06-07,Turkey,Turkey,Asia,NA,1
+829,Osamu Shimomura,FALSE,male,1928-08-27,Japan,Japan,Asia,2018-10-19,1
+549,Oscar Arias Sánchez,FALSE,male,1940-09-13,Costa Rica,Costa Rica,North America,NA,1
+210,Otto Diels,FALSE,male,1876-01-23,Germany,Germany,Europe,1954-03-07,1
+202,Otto Hahn,FALSE,male,1879-03-08,Germany,Germany,Europe,1968-07-28,1
+331,Otto Loewi,FALSE,male,1873-06-03,Germany,Germany,Europe,1961-12-25,1
+312,Otto Meyerhof,FALSE,male,1884-04-12,Germany,Germany,Europe,1951-10-06,1
+48,Otto Stern,FALSE,male,1888-02-17,Germany,Poland,Europe,1969-08-17,1
+169,Otto Wallach,FALSE,male,1847-03-27,Germany,Russia,Europe,1931-02-26,1
+322,Otto Warburg,FALSE,male,1883-10-08,Germany,Germany,Europe,1970-08-01,1
+73,Owen Chamberlain,FALSE,male,1920-07-10,USA,USA,North America,2006-02-28,1
+35,Owen Willans Richardson,FALSE,male,1879-04-26,United Kingdom,United Kingdom,Europe,1959-02-15,1
+645,Pablo Neruda,FALSE,male,1904-07-12,Chile,Chile,South America,1973-09-23,1
+622,Pär Lagerkvist,FALSE,male,1891-05-23,Sweden,Sweden,Europe,1974-07-11,1
+53,Patrick M.S. Blackett,FALSE,male,1897-11-18,United Kingdom,United Kingdom,Europe,1974-07-13,1
+912,Patrick Modiano,FALSE,male,1945-07-30,France,France,Europe,NA,1
+648,Patrick White,FALSE,male,1912-05-28,United Kingdom,United Kingdom,Europe,1990-09-30,1
+679,Paul A. Samuelson,FALSE,male,1915-05-15,USA,USA,North America,2009-12-13,1
+40,Paul A.M. Dirac,FALSE,male,1902-08-08,United Kingdom,United Kingdom,Europe,1984-10-20,1
+254,Paul Berg,FALSE,male,1926-06-30,USA,USA,North America,2023-02-15,1
+764,Paul C. Lauterbur,FALSE,male,1929-05-06,USA,USA,North America,2007-03-27,1
+287,Paul D. Boyer,FALSE,male,1918-07-31,USA,USA,North America,2018-06-02,1
+302,Paul Ehrlich,FALSE,male,1854-03-14,Prussia,Poland,Europe,1915-08-20,1
+723,Paul Greengard,FALSE,male,1925-12-11,USA,USA,North America,2019-04-13,1
+476,Paul Henri d'Estournelles de Constant,FALSE,male,1852-11-22,France,France,Europe,1924-05-15,1
+580,Paul Heyse,FALSE,male,1830-03-15,Prussia,Germany,Europe,1914-04-02,1
+281,Paul J. Crutzen,FALSE,male,1933-12-03,the Netherlands,the Netherlands,Europe,2021-01-28,1
+246,Paul J. Flory,FALSE,male,1910-06-19,USA,USA,North America,1985-09-08,1
+197,Paul Karrer,FALSE,male,1889-04-21,Russia,Russia,Europe,1971-06-18,1
+834,Paul Krugman,FALSE,male,1953-02-28,USA,USA,North America,NA,1
+969,Paul M. Romer,FALSE,male,1955-00-00,USA,USA,North America,NA,1
+922,Paul Modrich,FALSE,male,1946-06-13,USA,USA,North America,NA,1
+346,Paul Müller,FALSE,male,1899-01-12,Switzerland,Switzerland,Europe,1965-10-12,1
+995,Paul R. Milgrom,FALSE,male,1948-04-20,USA,USA,North America,NA,1
+173,Paul Sabatier,FALSE,male,1854-11-05,France,France,Europe,1941-08-14,1
+70,Pavel A. Cherenkov,FALSE,male,1904-07-28,Russia,Russia,Europe,1990-01-06,1
+610,Pearl Buck,FALSE,female,1892-06-26,USA,USA,North America,1973-03-06,1
+51,Percy W. Bridgman,FALSE,male,1882-04-21,USA,USA,North America,1961-08-20,1
+477,Permanent International Peace Bureau,TRUE,NA,1891-00-00,Switzerland,Switzerland,NA,NA,1
+856,Peter A. Diamond,FALSE,male,1940-04-29,USA,USA,North America,NA,1
+769,Peter Agre,FALSE,male,1949-01-30,USA,USA,North America,NA,1
+455,Peter C. Doherty,FALSE,male,1940-10-15,Australia,Australia,Oceania,NA,1
+195,Peter Debye,FALSE,male,1884-03-24,the Netherlands,the Netherlands,Europe,1966-11-02,1
+815,Peter Grünberg,FALSE,male,1939-05-18,Czechoslovakia,Czech Republic,Europe,2018-04-09,1
+980,Peter Handke,FALSE,male,1942-12-06,Austria,Austria,Europe,NA,1
+1062,Peter Hegemann,FALSE,male,1954-12-11,Germany,Germany,Europe,NA,1
+888,Peter Higgs,FALSE,male,1929-05-29,United Kingdom,United Kingdom,Europe,2024-04-08,1
+1060,Peter Howitt,FALSE,male,1946-05-31,Canada,Canada,North America,NA,1
+370,Peter Medawar,FALSE,male,1915-02-28,Brazil,Brazil,South America,1987-10-02,1
+251,Peter Mitchell,FALSE,male,1920-09-29,United Kingdom,United Kingdom,Europe,1992-04-10,1
+383,Peyton Rous,FALSE,male,1879-10-05,USA,USA,North America,1970-02-16,1
+1023,Philip Dybvig,FALSE,male,1955-05-22,USA,USA,North America,NA,1
+518,Philip Noel-Baker,FALSE,male,1889-11-01,United Kingdom,United Kingdom,Europe,1982-10-08,1
+351,Philip S. Hench,FALSE,male,1896-02-28,USA,USA,North America,1965-03-30,1
+107,Philip W. Anderson,FALSE,male,1923-12-13,USA,USA,North America,2020-03-29,1
+9,Philipp Lenard,FALSE,male,1862-06-07,Hungary,Slovakia,Europe,1947-05-20,1
+1059,Philippe Aghion,FALSE,male,1956-08-17,France,France,Europe,NA,1
+449,Phillip A. Sharp,FALSE,male,1944-06-06,USA,USA,North America,NA,1
+1026,Pierre Agostini,FALSE,male,1941-07-23,French protectorate of Tunisia,Tunisia,Africa,NA,1
+5,Pierre Curie,FALSE,male,1859-05-15,France,France,Europe,1906-04-19,1
+141,Pierre-Gilles de Gennes,FALSE,male,1932-10-24,France,France,Europe,2007-05-18,1
+3,Pieter Zeeman,FALSE,male,1865-05-25,the Netherlands,the Netherlands,Europe,1943-10-09,1
+64,Polykarp Kusch,FALSE,male,1911-01-26,Germany,Germany,Europe,1993-03-20,1
+561,Pugwash Conferences on Science and World Affairs,TRUE,NA,1957-00-00,Canada,Canada,NA,NA,1
+110,Pyotr Kapitsa,FALSE,male,1894-07-09,Russian Empire,Russia,Europe,1984-04-08,1
+583,Rabindranath Tagore,FALSE,male,1861-05-07,India,India,Asia,1941-08-07,1
+677,Ragnar Frisch,FALSE,male,1895-03-03,Norway,Norway,Europe,1973-01-31,1
+385,Ragnar Granit,FALSE,male,1900-10-30,Russian Empire,Finland,Europe,1991-03-12,1
+941,Rainer Weiss,FALSE,male,1932-09-29,Germany,Germany,Europe,2025-08-25,1
+511,Ralph Bunche,FALSE,male,1904-08-07,USA,USA,North America,1971-12-09,1
+863,Ralph M. Steinman,FALSE,male,1943-01-14,Canada,Canada,North America,2011-09-30,1
+466,Randal Cremer,FALSE,male,1828-03-18,United Kingdom,United Kingdom,Europe,1908-07-22,1
+885,Randy W. Schekman,FALSE,male,1948-12-30,USA,USA,North America,NA,1
+753,Raymond Davis Jr.,FALSE,male,1914-10-14,USA,USA,North America,2006-05-31,1
+989,Reinhard Genzel,FALSE,male,1952-03-24,Germany,Germany,Europe,NA,1
+713,Reinhard Selten,FALSE,male,1930-10-05,Germany,Poland,Europe,2016-08-23,1
+407,Renato Dulbecco,FALSE,male,1914-02-22,Italy,Italy,Europe,2012-02-19,1
+526,René Cassin,FALSE,male,1887-10-05,France,France,Europe,1976-02-20,1
+755,Riccardo Giacconi,FALSE,male,1931-10-06,Italy,Italy,Europe,2018-12-16,1
+774,Richard Axel,FALSE,male,1946-07-02,USA,USA,North America,NA,1
+286,Richard E. Smalley,FALSE,male,1943-06-06,USA,USA,North America,2005-10-28,1
+140,Richard E. Taylor,FALSE,male,1929-11-02,Canada,Canada,North America,2018-02-22,1
+851,Richard F. Heck,FALSE,male,1931-08-15,USA,USA,North America,2015-10-09,1
+949,Richard H. Thaler,FALSE,male,1945-09-12,USA,USA,North America,NA,1
+946,Richard Henderson,FALSE,male,1945-07-19,Scotland,Scotland,Europe,NA,1
+448,Richard J. Roberts,FALSE,male,1943-09-06,United Kingdom,United Kingdom,Europe,NA,1
+198,Richard Kuhn,FALSE,male,1900-12-03,Austria-Hungary,Austria,Europe,1967-07-31,1
+215,Richard L.M. Synge,FALSE,male,1914-10-28,United Kingdom,United Kingdom,Europe,1994-08-18,1
+86,Richard P. Feynman,FALSE,male,1918-05-11,USA,USA,North America,1988-02-15,1
+276,Richard R. Ernst,FALSE,male,1933-08-14,Switzerland,Switzerland,Europe,2021-06-04,1
+796,Richard R. Schrock,FALSE,male,1945-01-04,USA,USA,North America,NA,1
+1054,Richard Robson,FALSE,male,1937-06-04,United Kingdom,United Kingdom,Europe,NA,1
+698,Richard Stone,FALSE,male,1913-08-30,United Kingdom,United Kingdom,Europe,1991-12-06,1
+176,Richard Willstätter,FALSE,male,1872-08-13,Germany,Germany,Europe,1942-08-03,1
+182,Richard Zsigmondy,FALSE,male,1865-04-01,Austrian Empire,Austria,Europe,1929-09-24,1
+554,Rigoberta Menchú Tum,FALSE,female,1959-01-09,Guatemala,Guatemala,North America,NA,1
+435,Rita Levi-Montalcini,FALSE,female,1909-04-22,Italy,Italy,Europe,2012-12-30,1
+258,Roald Hoffmann,FALSE,male,1937-07-18,Poland,Ukraine,Europe,NA,1
+28,Robert A. Millikan,FALSE,male,1868-03-22,USA,USA,North America,1953-12-19,1
+155,Robert B. Laughlin,FALSE,male,1950-11-01,USA,USA,North America,NA,1
+996,Robert B. Wilson,FALSE,male,1937-05-16,USA,USA,North America,NA,1
+231,Robert B. Woodward,FALSE,male,1917-04-10,USA,USA,North America,1979-07-08,1
+308,Robert Bárány,FALSE,male,1876-04-22,Austria,Austria,Europe,1936-04-08,1
+717,Robert C. Merton,FALSE,male,1944-07-31,USA,USA,North America,NA,1
+151,Robert C. Richardson,FALSE,male,1937-06-26,USA,USA,North America,2013-02-19,1
+502,"Robert Cecil, Viscount Cecil of Chelwood",FALSE,male,1864-09-14,United Kingdom,United Kingdom,Europe,1958-11-24,1
+1069,Robert E. Hall,FALSE,male,1943-00-00,USA,USA,North America,NA,1
+714,Robert E. Lucas Jr.,FALSE,male,1937-09-15,USA,USA,North America,2023-05-15,1
+284,Robert F. Curl Jr.,FALSE,male,1933-08-23,USA,USA,North America,2022-07-03,1
+771,Robert F. Engle III,FALSE,male,1942-11-10,USA,USA,North America,NA,1
+458,Robert F. Furchgott,FALSE,male,1916-06-04,USA,USA,North America,2009-05-19,1
+848,Robert G. Edwards,FALSE,male,1925-09-27,United Kingdom,United Kingdom,Europe,2013-04-10,1
+795,Robert H. Grubbs,FALSE,male,1942-02-27,USA,USA,North America,2021-12-19,1
+75,Robert Hofstadter,FALSE,male,1915-02-05,USA,USA,North America,1990-11-17,1
+271,Robert Huber,FALSE,male,1937-02-20,Germany,Germany,Europe,NA,1
+799,Robert J. Aumann,FALSE,male,1930-06-08,Germany,Germany,Europe,NA,1
+878,Robert J. Lefkowitz,FALSE,male,1943-04-15,USA,USA,North America,NA,1
+896,Robert J. Shiller,FALSE,male,1946-03-29,USA,USA,North America,NA,1
+297,Robert Koch,FALSE,male,1843-12-11,Germany,Germany,Europe,1910-05-27,1
+701,Robert M. Solow,FALSE,male,1924-08-23,USA,USA,North America,2023-12-21,1
+720,Robert Mundell,FALSE,male,1932-10-24,Canada,Canada,North America,2021-04-04,1
+232,Robert S. Mulliken,FALSE,male,1896-06-07,USA,USA,North America,1986-10-31,1
+96,Robert Schrieffer,FALSE,male,1931-05-31,USA,USA,North America,2019-07-27,1
+709,Robert W. Fogel,FALSE,male,1927-07-01,USA,USA,North America,2013-06-11,1
+388,Robert W. Holley,FALSE,male,1922-01-28,USA,USA,North America,1993-02-11,1
+112,Robert Woodrow Wilson,FALSE,male,1936-01-10,USA,USA,North America,NA,1
+770,Roderick MacKinnon,FALSE,male,1956-02-19,USA,USA,North America,NA,1
+399,Rodney R. Porter,FALSE,male,1917-10-08,United Kingdom,United Kingdom,Europe,1985-09-06,1
+822,Roger B. Myerson,FALSE,male,1951-03-29,USA,USA,North America,NA,1
+806,Roger D. Kornberg,FALSE,male,1947-04-24,USA,USA,North America,NA,1
+411,Roger Guillemin,FALSE,male,1924-01-11,France,France,Europe,2024-02-21,1
+609,Roger Martin du Gard,FALSE,male,1881-03-23,France,France,Europe,1958-08-22,1
+988,Roger Penrose,FALSE,male,1931-08-08,United Kingdom,United Kingdom,Europe,NA,1
+422,Roger W. Sperry,FALSE,male,1913-08-20,USA,USA,North America,1994-04-17,1
+831,Roger Y. Tsien,FALSE,male,1952-02-01,USA,USA,North America,2016-08-24,1
+456,Rolf M. Zinkernagel,FALSE,male,1944-01-06,Switzerland,Switzerland,Europe,NA,1
+584,Romain Rolland,FALSE,male,1866-01-29,France,France,Europe,1944-12-30,1
+234,Ronald G.W. Norrish,FALSE,male,1897-11-09,United Kingdom,United Kingdom,Europe,1978-06-07,1
+707,Ronald H. Coase,FALSE,male,1910-12-29,United Kingdom,United Kingdom,Europe,2013-09-02,1
+294,Ronald Ross,FALSE,male,1857-05-13,India,India,Asia,1932-09-16,1
+413,Rosalyn Yalow,FALSE,female,1921-07-19,USA,USA,North America,2011-05-30,1
+791,Roy J. Glauber,FALSE,male,1925-09-01,USA,USA,North America,2018-12-26,1
+578,Rudolf Eucken,FALSE,male,1846-01-05,East Friesland,Germany,Europe,1926-09-14,1
+76,Rudolf Mössbauer,FALSE,male,1929-01-31,Germany,Germany,Europe,2011-09-14,1
+277,Rudolph A. Marcus,FALSE,male,1923-07-21,Canada,Canada,North America,2026-07-16,1
+577,Rudyard Kipling,FALSE,male,1865-12-30,British India,India,Asia,1936-01-18,1
+143,Russell A. Hulse,FALSE,male,1950-11-28,USA,USA,North America,NA,1
+742,Ryoji Noyori,FALSE,male,1938-09-03,Japan,Japan,Asia,NA,1
+631,Saint-John Perse,FALSE,male,1887-05-31,"Guadeloupe, France","Guadeloupe, France",North America,1975-09-20,1
+393,Salvador E. Luria,FALSE,male,1912-08-13,Italy,Italy,Europe,1991-02-06,1
+630,Salvatore Quasimodo,FALSE,male,1901-08-20,Italy,Italy,Europe,1968-06-14,1
+643,Samuel Beckett,FALSE,male,1906-04-13,Ireland,Ireland,Europe,1989-12-22,1
+106,Samuel C.C. Ting,FALSE,male,1936-01-27,USA,USA,North America,NA,1
+299,Santiago Ramón y Cajal,FALSE,male,1852-05-01,Spain,Spain,Europe,1934-10-17,1
+917,Satoshi Ōmura,FALSE,male,1935-07-12,Japan,Japan,Asia,NA,1
+652,Saul Bellow,FALSE,male,1915-06-10,Canada,Canada,North America,2005-04-05,1
+864,Saul Perlmutter,FALSE,male,1959-00-00,USA,USA,North America,NA,1
+672,Seamus Heaney,FALSE,male,1939-04-13,Northern Ireland,Northern Ireland,Europe,2013-08-30,1
+532,Seán MacBride,FALSE,male,1904-01-26,France,France,Europe,1988-01-15,1
+579,Selma Lagerlöf,FALSE,female,1858-11-20,Sweden,Sweden,Europe,1940-03-16,1
+353,Selman A. Waksman,FALSE,male,1888-07-22,Russian Empire,Ukraine,Europe,1973-08-16,1
+876,Serge Haroche,FALSE,male,1944-09-11,Morocco,Morocco,Africa,NA,1
+367,Severo Ochoa,FALSE,male,1905-09-24,Spain,Spain,Europe,1993-11-01,1
+113,Sheldon Glashow,FALSE,male,1932-12-05,USA,USA,North America,NA,1
+558,Shimon Peres,FALSE,male,1923-08-16,Poland,Belarus,Europe,2016-09-28,1
+1049,Shimon Sakaguchi,FALSE,male,1951-01-19,Japan,Japan,Asia,NA,1
+875,Shinya Yamanaka,FALSE,male,1962-09-04,Japan,Japan,Asia,NA,1
+773,Shirin Ebadi,FALSE,female,1947-06-21,Iran,Iran,Asia,NA,1
+639,Shmuel Agnon,FALSE,male,1888-07-17,Austria-Hungary,Ukraine,Europe,1970-02-17,1
+908,Shuji Nakamura,FALSE,male,1954-05-22,Japan,Japan,Asia,NA,1
+273,Sidney Altman,FALSE,male,1939-05-07,Canada,Canada,North America,2022-04-05,1
+601,Sigrid Undset,FALSE,female,1882-05-20,Denmark,Denmark,Europe,1949-06-10,1
+1045,Simon Johnson,FALSE,male,1963-00-00,United Kingdom,United Kingdom,Europe,NA,1
+680,Simon Kuznets,FALSE,male,1901-04-30,Russian Empire,Belarus,Europe,1985-07-08,1
+125,Simon van der Meer,FALSE,male,1925-11-24,the Netherlands,the Netherlands,Europe,2011-03-04,1
+84,Sin-Itiro Tomonaga,FALSE,male,1906-03-31,Japan,Japan,Asia,1979-07-08,1
+603,Sinclair Lewis,FALSE,male,1885-02-07,USA,USA,North America,1951-01-10,1
+339,Sir Alexander Fleming,FALSE,male,1881-08-06,Scotland,Scotland,Europe,1955-03-11,1
+693,Sir Arthur Lewis,FALSE,male,1915-01-23,British West Indies,Saint Lucia,North America,1991-06-15,1
+488,Sir Austen Chamberlain,FALSE,male,1863-10-16,United Kingdom,United Kingdom,Europe,1937-03-16,1
+394,Sir Bernard Katz,FALSE,male,1911-03-26,Germany,Germany,Europe,2003-04-20,1
+37,Sir Chandrasekhara Venkata Raman,FALSE,male,1888-11-07,India,India,Asia,1970-11-21,1
+323,Sir Charles Sherrington,FALSE,male,1857-11-27,United Kingdom,United Kingdom,Europe,1952-03-04,1
+219,Sir Cyril Hinshelwood,FALSE,male,1897-05-19,United Kingdom,United Kingdom,Europe,1967-10-09,1
+369,Sir Frank Macfarlane Burnet,FALSE,male,1899-09-03,Australia,Australia,Oceania,1985-08-31,1
+320,Sir Frederick Hopkins,FALSE,male,1861-06-20,United Kingdom,United Kingdom,Europe,1947-05-16,1
+965,Sir Gregory P. Winter,FALSE,male,1951-04-14,United Kingdom,United Kingdom,Europe,NA,1
+285,Sir Harold Kroto,FALSE,male,1939-10-07,United Kingdom,United Kingdom,Europe,2016-04-30,1
+330,Sir Henry Dale,FALSE,male,1875-06-09,United Kingdom,United Kingdom,Europe,1968-07-23,1
+341,Sir Howard Florey,FALSE,male,1898-09-24,Australia,Australia,Oceania,1968-02-21,1
+932,Sir J. Fraser Stoddart,FALSE,male,1942-05-24,United Kingdom,United Kingdom,Europe,2024-12-30,1
+437,Sir James W. Black,FALSE,male,1924-06-14,Scotland,Scotland,Europe,2010-03-21,1
+874,Sir John B. Gurdon,FALSE,male,1933-10-02,United Kingdom,United Kingdom,Europe,2025-10-07,1
+375,Sir John Eccles,FALSE,male,1903-01-27,Australia,Australia,Oceania,1997-05-02,1
+812,Sir Martin J. Evans,FALSE,male,1941-01-01,United Kingdom,United Kingdom,Europe,NA,1
+108,Sir Nevill F. Mott,FALSE,male,1905-09-30,United Kingdom,United Kingdom,Europe,1996-08-08,1
+498,Sir Norman Angell,FALSE,male,1872-12-26,United Kingdom,United Kingdom,Europe,1967-10-07,1
+737,Sir Paul Nurse,FALSE,male,1949-01-25,United Kingdom,United Kingdom,Europe,NA,1
+971,Sir Peter J. Ratcliffe,FALSE,male,1954-05-14,United Kingdom,United Kingdom,Europe,NA,1
+765,Sir Peter Mansfield,FALSE,male,1933-10-09,United Kingdom,United Kingdom,Europe,2017-02-08,1
+207,Sir Robert Robinson,FALSE,male,1886-09-13,United Kingdom,United Kingdom,Europe,1975-02-08,1
+163,Sir William Ramsay,FALSE,male,1852-10-02,Scotland,Scotland,Europe,1916-07-23,1
+242,Stanford Moore,FALSE,male,1913-09-04,USA,USA,North America,1982-08-23,1
+457,Stanley B. Prusiner,FALSE,male,1942-05-28,USA,USA,North America,NA,1
+434,Stanley Cohen,FALSE,male,1922-11-17,USA,USA,North America,2020-02-05,1
+910,Stefan W. Hell,FALSE,male,1962-12-23,Romania,Romania,Europe,NA,1
+152,Steven Chu,FALSE,male,1948-02-28,USA,USA,North America,NA,1
+115,Steven Weinberg,FALSE,male,1933-05-03,USA,USA,North America,2021-07-23,1
+122,Subrahmanyan Chandrasekhar,FALSE,male,1910-10-19,India,Pakistan,Asia,1995-08-21,1
+569,Sully Prudhomme,FALSE,male,1839-03-16,France,France,Europe,1907-09-07,1
+425,Sune K. Bergström,FALSE,male,1916-01-10,Sweden,Sweden,Europe,2004-08-15,1
+1053,Susumu Kitagawa,FALSE,male,1951-07-04,Japan,Japan,Asia,NA,1
+436,Susumu Tonegawa,FALSE,male,1939-09-05,Japan,Japan,Asia,2026-07-11,1
+162,Svante Arrhenius,FALSE,male,1859-02-19,Sweden,Sweden,Europe,1927-10-02,1
+1011,Svante Pääbo,FALSE,male,1955-04-20,Sweden,Sweden,Europe,NA,1
+924,Svetlana Alexievich,FALSE,female,1948-05-31,Ukraine,Ukraine,Europe,NA,1
+750,Sydney Brenner,FALSE,male,1927-01-13,South Africa,South Africa,Africa,2019-04-05,1
+999,Syukuro Manabe,FALSE,male,1931-09-21,Japan,Japan,Asia,NA,1
+619,T.S. Eliot,FALSE,male,1888-09-26,USA,USA,North America,1965-01-04,1
+350,Tadeus Reichstein,FALSE,male,1897-07-20,Poland,Poland,Europe,1996-08-01,1
+919,Takaaki Kajita,FALSE,male,1959-03-09,Japan,Japan,Asia,NA,1
+959,Tasuku Honjo,FALSE,male,1942-01-27,Japan,Japan,Asia,NA,1
+871,Tawakkol Karman,FALSE,female,1979-02-07,Yemen,Yemen,Asia,NA,1
+551,The 14th Dalai Lama,FALSE,male,1935-07-06,Tibet,China,Asia,NA,1
+183,The Svedberg,FALSE,male,1884-08-30,Sweden,Sweden,Europe,1971-02-25,1
+303,Theodor Kocher,FALSE,male,1841-08-25,Switzerland,Switzerland,Europe,1917-07-27,1
+571,Theodor Mommsen,FALSE,male,1817-11-30,Schleswig,Germany,Europe,1903-11-01,1
+793,Theodor W. Hänsch,FALSE,male,1941-10-30,Germany,Germany,Europe,NA,1
+470,Theodore Roosevelt,FALSE,male,1858-10-27,USA,USA,North America,1919-01-06,1
+175,Theodore W. Richards,FALSE,male,1868-01-31,USA,USA,North America,1928-04-02,1
+692,Theodore W. Schultz,FALSE,male,1902-04-30,USA,USA,North America,1998-02-26,1
+842,Thomas A. Steitz,FALSE,male,1940-08-23,USA,USA,North America,2018-08-23,1
+800,Thomas C. Schelling,FALSE,male,1921-04-14,USA,USA,North America,2016-12-13,1
+886,Thomas C. Südhof,FALSE,male,1955-12-22,Germany,Germany,Europe,NA,1
+325,Thomas H. Morgan,FALSE,male,1866-09-25,USA,USA,North America,1945-12-04,1
+357,Thomas H. Weller,FALSE,male,1915-06-15,USA,USA,North America,2008-08-23,1
+872,Thomas J. Sargent,FALSE,male,1943-07-19,USA,USA,North America,NA,1
+602,Thomas Mann,FALSE,male,1875-06-06,Germany,Germany,Europe,1955-08-12,1
+274,Thomas R. Cech,FALSE,male,1947-12-08,USA,USA,North America,NA,1
+736,Tim Hunt,FALSE,male,1943-02-19,United Kingdom,United Kingdom,Europe,NA,1
+687,Tjalling C. Koopmans,FALSE,male,1910-08-28,the Netherlands,the Netherlands,Europe,1985-02-26,1
+478,Tobias Asser,FALSE,male,1838-04-28,the Netherlands,the Netherlands,Europe,1913-07-29,1
+921,Tomas Lindahl,FALSE,male,1938-01-28,Sweden,Sweden,Europe,NA,1
+868,Tomas Tranströmer,FALSE,male,1931-04-15,Sweden,Sweden,Europe,2015-03-26,1
+670,Toni Morrison,FALSE,female,1931-02-18,USA,USA,North America,2019-08-05,1
+424,Torsten N. Wiesel,FALSE,male,1924-06-03,Sweden,Sweden,Europe,NA,1
+828,Toshihide Maskawa,FALSE,male,1940-02-07,Japan,Japan,Asia,2021-07-23,1
+703,Trygve Haavelmo,FALSE,male,1911-12-13,Norway,Norway,Europe,1999-07-26,1
+69,Tsung-Dao Lee,FALSE,male,1926-11-24,China,China,Asia,2024-08-04,1
+918,Tu Youyou,FALSE,female,1930-12-30,China,China,Asia,NA,1
+395,Ulf von Euler,FALSE,male,1905-02-07,Sweden,Sweden,Europe,1983-03-09,1
+748,United Nations,TRUE,NA,1945-00-00,USA,USA,NA,NA,1
+525,United Nations Children's Fund,TRUE,NA,1946-00-00,USA,USA,NA,NA,1
+550,United Nations Peacekeeping Forces,TRUE,NA,1948-00-00,USA,USA,NA,NA,1
+747,V. S. Naipaul,FALSE,male,1932-08-17,Trinidad and Tobago,Trinidad and Tobago,North America,2018-08-11,1
+117,Val Fitch,FALSE,male,1923-03-10,USA,USA,North America,2015-02-05,1
+841,Venkatraman Ramakrishnan,FALSE,male,1952-00-00,India,India,Asia,NA,1
+585,Verner von Heidenstam,FALSE,male,1859-07-06,Sweden,Sweden,Europe,1940-05-20,1
+760,Vernon L. Smith,FALSE,male,1927-01-01,USA,USA,North America,NA,1
+653,Vicente Aleixandre,FALSE,male,1898-04-26,Spain,Spain,Europe,1984-12-14,1
+1035,Victor Ambros,FALSE,male,1953-12-01,USA,USA,North America,NA,1
+42,Victor F. Hess,FALSE,male,1883-06-24,Austria,Austria,Europe,1964-12-17,1
+172,Victor Grignard,FALSE,male,1871-05-06,France,France,Europe,1935-12-13,1
+218,Vincent du Vigneaud,FALSE,male,1901-05-18,USA,USA,North America,1978-12-11,1
+767,Vitaly L. Ginzburg,FALSE,male,1916-10-04,Russia,Russia,Europe,2009-11-08,1
+248,Vladimir Prelog,FALSE,male,1906-07-23,Austria-Hungary,Bosnia and Herzegovina,Europe,1998-01-07,1
+255,Walter Gilbert,FALSE,male,1932-03-21,USA,USA,North America,NA,1
+67,Walter H. Brattain,FALSE,male,1902-02-10,China,China,Asia,1987-10-13,1
+347,Walter Hess,FALSE,male,1881-03-17,Switzerland,Switzerland,Europe,1973-08-12,1
+290,Walter Kohn,FALSE,male,1923-03-09,Austria,Austria,Europe,2016-04-19,1
+62,Walther Bothe,FALSE,male,1891-01-08,Germany,Germany,Europe,1957-02-08,1
+178,Walther Nernst,FALSE,male,1864-06-25,Prussia,Poland,Europe,1941-11-18,1
+783,Wangari Maathai,FALSE,female,1940-04-01,Kenya,Kenya,Africa,2011-09-25,1
+683,Wassily Leontief,FALSE,male,1906-08-05,Russia,Russia,Europe,1999-02-05,1
+206,Wendell M. Stanley,FALSE,male,1904-08-16,USA,USA,North America,1971-06-15,1
+414,Werner Arber,FALSE,male,1929-06-03,Switzerland,Switzerland,Europe,NA,1
+361,Werner Forssmann,FALSE,male,1904-08-29,Germany,Germany,Europe,1979-06-01,1
+38,Werner Heisenberg,FALSE,male,1901-12-05,Germany,Germany,Europe,1976-02-01,1
+1,Wilhelm Conrad Röntgen,FALSE,male,1845-03-27,Prussia,Germany,Europe,1923-02-10,1
+168,Wilhelm Ostwald,FALSE,male,1853-09-02,Russian Empire,Latvia,Europe,1932-04-04,1
+16,Wilhelm Wien,FALSE,male,1864-01-13,Prussia,Russia,Europe,1928-08-30,1
+224,Willard F. Libby,FALSE,male,1908-12-17,USA,USA,North America,1980-09-08,1
+839,Willard S. Boyle,FALSE,male,1924-08-19,Canada,Canada,North America,2011-05-07,1
+315,Willem Einthoven,FALSE,male,1860-05-21,"Java, Dutch East Indies",Indonesia,Asia,1927-09-29,1
+123,William A. Fowler,FALSE,male,1911-08-09,USA,USA,North America,1995-03-14,1
+65,William B. Shockley,FALSE,male,1910-02-13,United Kingdom,United Kingdom,Europe,1989-08-12,1
+20,William Bragg,FALSE,male,1862-07-02,United Kingdom,United Kingdom,Europe,1942-03-12,1
+593,William Butler Yeats,FALSE,male,1865-06-13,Ireland,Ireland,Europe,1939-01-28,1
+916,William C. Campbell,FALSE,male,1930-06-28,Ireland,Ireland,Europe,NA,1
+968,William D. Nordhaus,FALSE,male,1941-05-31,USA,USA,North America,NA,1
+154,William D. Phillips,FALSE,male,1948-11-05,USA,USA,North America,NA,1
+911,William E. Moerner,FALSE,male,1953-06-24,USA,USA,North America,NA,1
+209,William F. Giauque,FALSE,male,1895-05-12,Canada,Canada,North America,1982-03-28,1
+706,William F. Sharpe,FALSE,male,1934-06-16,USA,USA,North America,NA,1
+620,William Faulkner,FALSE,male,1897-09-25,USA,USA,North America,1962-07-06,1
+970,William G. Kaelin Jr,FALSE,male,1957-11-23,USA,USA,North America,NA,1
+660,William Golding,FALSE,male,1911-09-19,United Kingdom,United Kingdom,Europe,1993-06-19,1
+243,William H. Stein,FALSE,male,1911-06-25,USA,USA,North America,1980-02-02,1
+741,William Knowles,FALSE,male,1917-06-01,USA,USA,North America,2012-06-13,1
+249,William Lipscomb,FALSE,male,1919-12-09,USA,USA,North America,2011-04-14,1
+328,William P. Murphy,FALSE,male,1892-02-06,USA,USA,North America,1987-10-09,1
+716,William Vickrey,FALSE,male,1914-06-21,Canada,Canada,North America,1996-10-11,1
+63,Willis E. Lamb,FALSE,male,1913-07-12,USA,USA,North America,2008-05-15,1
+529,Willy Brandt,FALSE,male,1913-12-18,Germany,Germany,Europe,1992-10-08,1
+624,Winston Churchill,FALSE,male,1874-11-30,United Kingdom,United Kingdom,Europe,1965-01-24,1
+673,Wisława Szymborska,FALSE,female,1923-07-02,Poland,Poland,Europe,2012-02-01,1
+594,Władysław Reymont,FALSE,male,1867-05-07,Russian Empire,Poland,Europe,1925-12-05,1
+663,Wole Soyinka,FALSE,male,1934-07-13,Nigeria,Nigeria,Africa,NA,1
+739,Wolfgang Ketterle,FALSE,male,1957-10-21,West Germany,Germany,Europe,NA,1
+137,Wolfgang Paul,FALSE,male,1913-08-10,Germany,Germany,Europe,1993-12-07,1
+50,Wolfgang Pauli,FALSE,male,1900-04-25,Austria,Austria,Europe,1958-12-15,1
+483,Woodrow Wilson,FALSE,male,1856-12-28,USA,USA,North America,1924-02-03,1
+994,World Food Programme,TRUE,NA,1961-00-00,NA,NA,NA,NA,1
+557,Yasser Arafat,FALSE,male,1929-08-24,Egypt,Egypt,Africa,2004-11-11,1
+642,Yasunari Kawabata,FALSE,male,1899-06-11,Japan,Japan,Asia,1972-04-16,1
+559,Yitzhak Rabin,FALSE,male,1922-03-01,British Mandate of Palestine,Israel,Asia,1995-11-04,1
+826,Yoichiro Nambu,FALSE,male,1921-01-18,Japan,Japan,Asia,2015-07-05,1
+927,Yoshinori Ohsumi,FALSE,male,1945-02-09,Japan,Japan,Asia,NA,1
+265,Yuan T. Lee,FALSE,male,1936-11-19,Taiwan,Taiwan,Asia,NA,1
+794,Yves Chauvin,FALSE,male,1930-10-10,Belgium,Belgium,Europe,2015-01-27,1
+726,Zhores Alferov,FALSE,male,1930-03-15,USSR,Belarus,Europe,2019-03-01,1

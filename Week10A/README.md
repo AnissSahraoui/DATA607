@@ -60,3 +60,8 @@ Requires R with `tidyverse`, `tidytext`, `janeaustenr`, `syuzhet`, `sentimentr`,
 ```bash
 quarto render sentiment_analysis.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/sentiment-lexicons
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week10A

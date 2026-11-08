@@ -1,0 +1,510 @@
+---
+title: "Sentiment Analysis: Reproducing and Extending Text Mining with R"
+subtitle: "Jane Austen, five gothic novels, and four lexicons that disagree"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(tidytext)
+library(janeaustenr)
+library(syuzhet)
+library(sentimentr)
+library(knitr)
+
+accent   <- "#2a78d6"
+accent_2 <- "#eb6834"
+theme_sa <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# Overview
+
+This report has two halves. The first reproduces the sentiment analysis example from Chapter 2 of
+*Text Mining with R*. The second extends it with a different corpus — five gothic novels — and two
+additional lexicons, then asks how much the choice of lexicon changes the answer.
+
+The short version of the finding: **it changes it completely.** On the gothic novels, one lexicon
+says the books are negative and three say they are positive. The texts did not change; only the
+dictionary did.
+
+**Source of the original example:** Silge, J. and Robinson, D. (2017), *Text Mining with R: A Tidy
+Approach*, O'Reilly Media. Chapter 2, "Sentiment analysis with tidy data". The code in Section 3
+follows that chapter closely; any changes are noted where they occur.
+
+## A note on where the lexicons come from
+
+The chapter calls `tidytext::get_sentiments()`, which for `afinn` and `nrc` downloads the data
+through the `textdata` package and asks the user to accept each lexicon's licence first. That
+prompt cannot be answered in a document that renders automatically, so this report takes the same
+three lexicons from the `syuzhet` package, which ships its own copies. `bing` still comes from
+`tidytext` directly, exactly as in the book.
+
+```{r}
+#| label: lexicons
+bing  <- get_sentiments("bing")
+afinn <- as_tibble(get_sentiment_dictionary("afinn"))
+nrc   <- as_tibble(get_sentiment_dictionary("nrc")) |>
+  filter(lang == "english") |>
+  select(word, sentiment) |>
+  distinct()
+
+tibble(
+  lexicon = c("bing", "afinn", "nrc"),
+  source  = c("tidytext", "syuzhet", "syuzhet"),
+  entries = c(nrow(bing), nrow(afinn), nrow(nrc)),
+  form    = c("positive / negative", "score from -5 to +5", "positive / negative + 8 emotions")
+) |>
+  kable()
+```
+
+# Reproducing the Book's Example
+
+## Tidying the Austen novels
+
+This is the chapter's code: one word per row, with line and chapter numbers kept so sentiment can
+be tracked through each novel.
+
+```{r}
+#| label: tidy-austen
+tidy_books <- austen_books() |>
+  group_by(book) |>
+  mutate(
+    linenumber = row_number(),
+    chapter = cumsum(str_detect(text, regex("^chapter [\\divxlc]", ignore_case = TRUE)))
+  ) |>
+  ungroup() |>
+  unnest_tokens(word, text)
+
+tibble(words = nrow(tidy_books), books = n_distinct(tidy_books$book)) |> kable()
+```
+
+## The joy words in *Emma*
+
+The chapter's first result: the most common words in *Emma* that NRC labels as joy.
+
+```{r}
+#| label: joy
+nrc_joy <- nrc |> filter(sentiment == "joy")
+
+tidy_books |>
+  filter(book == "Emma") |>
+  inner_join(nrc_joy, by = "word", relationship = "many-to-many") |>
+  count(word, sort = TRUE) |>
+  head(10) |>
+  kable()
+```
+
+This matches the book exactly: *good*, *young*, *friend*, *hope*, *happy*, *love*. It also shows the
+method's weakness, which the authors point out — "young" is counted as joy, and "found" appears
+because the lexicon cannot tell *found* the verb from *found* meaning established.
+
+## Comparing the three lexicons on *Pride and Prejudice*
+
+```{r}
+#| label: three-lexicons
+pride_prejudice <- tidy_books |> filter(book == "Pride & Prejudice")
+
+afinn_pp <- pride_prejudice |>
+  inner_join(afinn, by = "word") |>
+  group_by(index = linenumber %/% 80) |>
+  summarise(sentiment = sum(value), .groups = "drop") |>
+  mutate(method = "AFINN")
+
+bing_and_nrc <- bind_rows(
+  pride_prejudice |>
+    inner_join(bing, by = "word", relationship = "many-to-many") |>
+    mutate(method = "Bing et al."),
+  pride_prejudice |>
+    inner_join(nrc |> filter(sentiment %in% c("positive", "negative")),
+               by = "word", relationship = "many-to-many") |>
+    mutate(method = "NRC")
+) |>
+  count(method, index = linenumber %/% 80, sentiment) |>
+  pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) |>
+  mutate(sentiment = positive - negative)
+
+comparison <- bind_rows(afinn_pp, bing_and_nrc |> select(index, sentiment, method))
+
+comparison |>
+  group_by(method) |>
+  summarise(
+    chunks        = n(),
+    mean          = round(mean(sentiment), 1),
+    lowest        = min(sentiment),
+    highest       = max(sentiment),
+    pct_positive  = round(100 * mean(sentiment > 0)),
+    .groups = "drop"
+  ) |>
+  kable(col.names = c("Method", "Chunks", "Mean", "Lowest", "Highest", "% chunks positive"))
+```
+
+```{r}
+#| label: fig-three-lexicons
+#| fig-cap: "Sentiment through Pride and Prejudice, measured three ways. Each bar is a chunk of 80 lines."
+#| fig-height: 5
+ggplot(comparison, aes(index, sentiment, fill = method)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~method, ncol = 1, scales = "free_y") +
+  scale_fill_manual(values = c("AFINN" = accent, "Bing et al." = accent_2, "NRC" = "#1baf7a")) +
+  labs(title = "The same novel, three lexicons, three different pictures",
+       x = "Index (80 lines of text per chunk)", y = "Net sentiment") +
+  theme_sa
+```
+
+The reproduction holds up. The three lines move together — they find the same peaks and troughs in
+the same places — but they sit at different heights. NRC is the most positive, calling
+`r comparison |> filter(method == "NRC") |> summarise(round(100*mean(sentiment>0))) |> pull()`% of
+chunks positive, against
+`r comparison |> filter(method == "Bing et al.") |> summarise(round(100*mean(sentiment>0))) |> pull()`%
+for Bing. The book attributes this to the lexicons' own balance, and that is exactly what the
+counts show:
+
+```{r}
+#| label: balance
+bind_rows(
+  bing |> count(sentiment) |> mutate(lexicon = "bing"),
+  nrc |> filter(sentiment %in% c("positive", "negative")) |> count(sentiment) |> mutate(lexicon = "nrc"),
+  afinn |> mutate(sentiment = if_else(value > 0, "positive", "negative")) |> count(sentiment) |>
+    mutate(lexicon = "afinn")
+) |>
+  pivot_wider(names_from = sentiment, values_from = n) |>
+  mutate(pct_positive = round(100 * positive / (positive + negative), 1)) |>
+  select(lexicon, negative, positive, pct_positive) |>
+  kable(col.names = c("Lexicon", "Negative words", "Positive words", "% positive"))
+```
+
+NRC is 41% positive while Bing is only 29.5%, so NRC scores any text higher. Nothing about the
+novel causes that difference.
+
+## Words that drive the score
+
+```{r}
+#| label: fig-contributors
+#| fig-cap: "Words contributing most to positive and negative sentiment across all six Austen novels (Bing)."
+#| fig-height: 4
+tidy_books |>
+  inner_join(bing, by = "word", relationship = "many-to-many") |>
+  count(word, sentiment, sort = TRUE) |>
+  group_by(sentiment) |>
+  slice_max(n, n = 10) |>
+  ungroup() |>
+  mutate(word = reorder(word, n)) |>
+  ggplot(aes(n, word, fill = sentiment)) +
+  geom_col(show.legend = FALSE) +
+  facet_wrap(~sentiment, scales = "free_y") +
+  scale_fill_manual(values = c(negative = accent_2, positive = accent)) +
+  labs(title = "Top sentiment words in the Austen novels", x = "Occurrences", y = NULL) +
+  theme_sa
+```
+
+The chapter uses this plot to make a point about error-checking, and the point survives: **"miss"**
+is counted as negative 1,855 times, but in Austen it is almost always a title for an unmarried
+woman, not a failure. In the book the authors add it to a custom stop-word list. I leave it in here
+so the problem stays visible, and return to it in the conclusions.
+
+# Extension 1: A Different Corpus
+
+## The gothic novels
+
+I kept the method and changed the material: five gothic and horror novels from Project Gutenberg,
+chosen because the genre should sit at the opposite emotional end from Austen's social comedies.
+
+```{r}
+#| label: load-gothic
+gothic <- read_csv(
+  "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week10A/data/gothic_books.csv",
+  show_col_types = FALSE
+)
+
+tidy_gothic <- gothic |>
+  group_by(title) |>
+  mutate(linenumber = row_number()) |>
+  ungroup() |>
+  unnest_tokens(word, text)
+
+tidy_gothic |>
+  count(title, name = "words") |>
+  kable(col.names = c("Novel", "Words"))
+```
+
+The corpus was downloaded once with `gutenbergr` and saved to my repository, so this document does
+not depend on a live download. (One title, an older edition of *Frankenstein*, had been archived on
+the mirror and was replaced with Gutenberg ID 84.)
+
+## Does the method separate the genres?
+
+```{r}
+#| label: genre-chunks
+chunk_sentiment <- function(tokens, group_col) {
+  tokens |>
+    inner_join(bing, by = "word", relationship = "many-to-many") |>
+    count(.data[[group_col]], index = linenumber %/% 80, sentiment) |>
+    pivot_wider(names_from = sentiment, values_from = n, values_fill = 0) |>
+    mutate(net = positive - negative)
+}
+
+austen_lines <- austen_books() |>
+  group_by(book) |>
+  mutate(linenumber = row_number()) |>
+  ungroup() |>
+  unnest_tokens(word, text)
+
+gothic_chunks <- chunk_sentiment(tidy_gothic, "title")
+austen_chunks <- chunk_sentiment(austen_lines, "book")
+
+bind_rows(
+  austen_chunks |> group_by(work = as.character(book)) |>
+    summarise(corpus = "Austen", .groups = "drop_last",
+              chunks = n(), mean_net = round(mean(net), 1),
+              pct_positive = round(100 * mean(net > 0))) |> ungroup(),
+  gothic_chunks |> group_by(work = title) |>
+    summarise(corpus = "Gothic", .groups = "drop_last",
+              chunks = n(), mean_net = round(mean(net), 1),
+              pct_positive = round(100 * mean(net > 0))) |> ungroup()
+) |>
+  select(corpus, work, chunks, mean_net, pct_positive) |>
+  kable(col.names = c("Corpus", "Work", "Chunks", "Mean net sentiment", "% chunks positive"))
+```
+
+```{r}
+#| label: fig-genres
+#| fig-cap: "Net sentiment per 80-line chunk (Bing). Every Austen novel sits above zero; every gothic novel sits below it."
+#| fig-height: 3.6
+bind_rows(
+  austen_chunks |> transmute(corpus = "Austen", net),
+  gothic_chunks |> transmute(corpus = "Gothic", net)
+) |>
+  ggplot(aes(x = net, fill = corpus)) +
+  geom_vline(xintercept = 0, color = "grey50") +
+  geom_density(alpha = 0.55, color = NA) +
+  scale_fill_manual(values = c(Austen = accent, Gothic = accent_2), name = NULL) +
+  labs(title = "Bing separates the two genres cleanly",
+       x = "Net sentiment per 80-line chunk", y = "Density") +
+  theme_sa +
+  theme(legend.position = "top")
+```
+
+Using Bing, the separation is complete: all six Austen novels average positive (+7.3 to +12.1) and
+all five gothic novels average negative (−1.6 to −8.3). *Dr Jekyll and Mr Hyde* is the darkest, with
+only 16% of its chunks positive, against 86% for *Persuasion*.
+
+# Extension 2: Additional Lexicons
+
+I added two more, each chosen for a different reason.
+
+**The syuzhet lexicon** is a fourth word-level dictionary, developed by Matthew Jockers for
+narrative analysis and bundled with the `syuzhet` package. It is the largest of the four, so it
+tests whether a bigger dictionary changes the answer.
+
+**`sentimentr`** is not a word list but a different method. It scores whole sentences and applies
+*valence shifters*: negators, amplifiers and de-amplifiers. This matters because every lexicon used
+so far is blind to the word "not".
+
+```{r}
+#| label: sentimentr-demo
+tibble(sentence = c("This is very good.", "This is not good at all.")) |>
+  mutate(sentimentr_score = map_dbl(sentence, ~ sentiment_by(get_sentences(.x))$ave_sentiment),
+         bing_words = c("good = positive", "good = positive")) |>
+  kable(col.names = c("Sentence", "sentimentr", "What a word lexicon sees"))
+```
+
+## How often does negation actually occur?
+
+Before assuming negation matters, it is worth measuring.
+
+```{r}
+#| label: negation
+negators <- c("not", "no", "never", "without", "none", "cannot", "nor", "neither", "nothing")
+
+bigrams <- gothic |>
+  group_by(title) |>
+  summarise(text = paste(text, collapse = " "), .groups = "drop") |>
+  unnest_tokens(bigram, text, token = "ngrams", n = 2) |>
+  separate(bigram, c("word1", "word2"), sep = " ", fill = "right")
+
+all_matches <- bigrams |> inner_join(bing, by = c("word2" = "word"), relationship = "many-to-many")
+negated     <- all_matches |> filter(word1 %in% negators)
+
+n_matches <- nrow(all_matches)
+n_negated <- nrow(negated)
+
+tibble(
+  sentiment_words = n_matches,
+  negated_words   = n_negated,
+  pct             = round(100 * n_negated / n_matches, 2)
+) |>
+  kable(col.names = c("Sentiment words", "Directly preceded by a negator", "%"))
+```
+
+```{r}
+#| label: negation-examples
+negated |>
+  filter(sentiment == "positive") |>
+  count(word1, word2, sort = TRUE) |>
+  head(8) |>
+  mutate(counted_as = "positive", should_be = "negative") |>
+  kable(col.names = c("Negator", "Word", "Times", "Counted as", "Should be"))
+```
+
+About 2% of sentiment words in the gothic corpus are directly negated, and "not like", "no good"
+and "not love" are all scored as positive by every word-level lexicon here. It is a real error, but
+a small one — too small to explain the differences that follow.
+
+## All four lexicons, both corpora
+
+```{r}
+#| label: four-lexicons
+syuzhet_lex <- as_tibble(get_sentiment_dictionary("syuzhet"))
+
+both <- bind_rows(
+  tidy_gothic |> transmute(corpus = "Gothic", word),
+  austen_lines |> transmute(corpus = "Austen", word)
+)
+
+lexicon_scores <- bind_rows(
+  both |> inner_join(bing, by = "word", relationship = "many-to-many") |>
+    group_by(corpus) |> summarise(lexicon = "bing",
+      score = mean(if_else(sentiment == "positive", 1, -1)), matched = n(), .groups = "drop"),
+  both |> inner_join(afinn, by = "word") |>
+    group_by(corpus) |> summarise(lexicon = "afinn", score = mean(value), matched = n(), .groups = "drop"),
+  both |> inner_join(nrc |> filter(sentiment %in% c("positive", "negative")),
+                     by = "word", relationship = "many-to-many") |>
+    group_by(corpus) |> summarise(lexicon = "nrc",
+      score = mean(if_else(sentiment == "positive", 1, -1)), matched = n(), .groups = "drop"),
+  both |> inner_join(syuzhet_lex, by = "word") |>
+    group_by(corpus) |> summarise(lexicon = "syuzhet", score = mean(value), matched = n(), .groups = "drop")
+)
+
+lexicon_scores |>
+  select(lexicon, corpus, score) |>
+  pivot_wider(names_from = corpus, values_from = score) |>
+  mutate(across(where(is.numeric), ~ round(.x, 3)),
+         gothic_sign = if_else(Gothic < 0, "negative", "positive")) |>
+  kable(col.names = c("Lexicon", "Austen", "Gothic", "Gothic verdict"))
+```
+
+```{r}
+#| label: fig-four
+#| fig-cap: "Mean sentiment per matched word. Austen is positive on every lexicon; the gothic novels are not."
+#| fig-height: 3.4
+lexicon_scores |>
+  ggplot(aes(x = score, y = lexicon, fill = corpus)) +
+  geom_vline(xintercept = 0, color = "grey40") +
+  geom_col(position = position_dodge(width = 0.7), width = 0.6) +
+  geom_text(aes(label = sprintf("%.2f", score)), position = position_dodge(width = 0.7),
+            hjust = ifelse(lexicon_scores$score < 0, 1.2, -0.2), size = 3.2) +
+  scale_fill_manual(values = c(Austen = accent, Gothic = accent_2), name = NULL) +
+  scale_x_continuous(expand = expansion(mult = 0.18)) +
+  labs(title = "Three of four lexicons call the gothic novels positive",
+       x = "Mean sentiment per matched word", y = NULL) +
+  theme_sa +
+  theme(legend.position = "top", panel.grid.major.y = element_blank())
+```
+
+**This is the main result of the extension.** On the same five novels, `bing` returns −0.087, a
+negative verdict, while `nrc` returns +0.105, `afinn` +0.054 and `syuzhet` +0.036, all positive. The
+earlier chunk-based chart made the gothic novels look decisively dark, but that conclusion came from
+one lexicon, and three others disagree with it.
+
+Why? Because `bing` is the harshest dictionary, only 29.5% positive, while NRC is 41% positive. A
+lexicon's own balance sets a baseline, and texts are scored relative to it.
+
+## Coverage: how much of the text each lexicon can even see
+
+```{r}
+#| label: coverage
+coverage <- function(dictionary_words, tokens, label) {
+  tibble(lexicon = label,
+         matched = sum(tokens$word %in% dictionary_words),
+         pct     = round(100 * mean(tokens$word %in% dictionary_words), 1))
+}
+
+bind_rows(
+  coverage(bing$word, tidy_gothic, "bing"),
+  coverage(afinn$word, tidy_gothic, "afinn"),
+  coverage(unique(nrc$word), tidy_gothic, "nrc"),
+  coverage(syuzhet_lex$word, tidy_gothic, "syuzhet")
+) |>
+  kable(col.names = c("Lexicon", "Words matched", "% of the corpus scored"))
+```
+
+Even the most generous lexicon scores only about 12% of the words, and Bing and AFINN see about 7%.
+Every conclusion above therefore rests on roughly one word in ten; the other nine are invisible to
+the method.
+
+## sentimentr, which reads sentences
+
+```{r}
+#| label: sentimentr-books
+sentimentr_scores <- bind_rows(
+  gothic |> group_by(work = title) |> summarise(text = paste(text, collapse = " "), .groups = "drop") |>
+    mutate(corpus = "Gothic"),
+  austen_books() |> group_by(work = as.character(book)) |>
+    summarise(text = paste(text, collapse = " "), .groups = "drop") |> mutate(corpus = "Austen")
+) |>
+  mutate(sentimentr = map_dbl(text, ~ sentiment_by(get_sentences(.x))$ave_sentiment)) |>
+  select(corpus, work, sentimentr)
+
+sentimentr_scores |>
+  mutate(sentimentr = round(sentimentr, 3)) |>
+  arrange(corpus, sentimentr) |>
+  kable(col.names = c("Corpus", "Work", "sentimentr score"))
+```
+
+`sentimentr` agrees with the majority: the Austen novels score clearly higher (+0.086 to +0.114)
+than the gothic ones (−0.020 to +0.037), but only *Dr Jekyll and Mr Hyde* comes out negative. Adding
+negation handling moved the gothic novels slightly, not decisively — which is consistent with
+negation affecting only 2% of matches.
+
+# Conclusions
+
+- **The reproduction works.** The Chapter 2 code runs as published and gives the same results: the
+  joy words in *Emma*, the three sentiment trajectories through *Pride and Prejudice*, and the
+  observation that NRC runs more positive than Bing.
+- **The lexicons agree on shape but not on level.** Across *Pride and Prejudice* all three find the
+  same peaks and troughs. What differs is where zero sits, and that is set by each dictionary's own
+  positive/negative balance rather than by the text.
+- **On a new corpus, that difference becomes decisive.** Bing calls the five gothic novels negative
+  (−0.087 per word); NRC, AFINN and syuzhet all call them positive. Austen is positive under every
+  lexicon, so the method works where the signal is strong, and breaks down where it is marginal. If
+  I had used a single lexicon and reported "gothic novels are dark", I would have been reporting a
+  property of Bing.
+- **Negation is a real but minor flaw.** Only 2.16% of sentiment words are directly negated, and
+  `sentimentr`, which handles negation and intensifiers, mostly agrees with the simple word counts.
+  Context errors are a bigger problem than negation: "miss" alone is counted negative 1,855 times in
+  Austen, where it is a form of address.
+- **Coverage is the limitation nobody mentions.** These lexicons score 7–12% of the words. A
+  sentiment score is a summary of a small, non-random slice of the text, and comparisons across
+  lexicons are partly comparisons of which slice each one happens to see.
+
+**What I would do next.** The honest way to use these tools is to run at least two lexicons and
+report the disagreement rather than picking the one that gives the expected answer. For the gothic
+corpus specifically, a domain-appropriate dictionary — or a labelled sample of sentences to validate
+against — would settle the question that four general-purpose lexicons could not.
+
+# References
+
+- Silge, J. and Robinson, D. (2017), *Text Mining with R: A Tidy Approach*, O'Reilly Media,
+  Chapter 2, "Sentiment analysis with tidy data". The base example in Section 3 follows this
+  chapter.
+- Hu, M. and Liu, B. (2004), opinion lexicon ("bing"), supplied with `tidytext`.
+- Nielsen, F. Å. (2011), AFINN word list; Mohammad, S. and Turney, P. (2013), NRC Emotion Lexicon;
+  Jockers, M. (2015), syuzhet lexicon — all three accessed through the `syuzhet` package.
+- Rinker, T. (2021), `sentimentr`: calculating text polarity sentiment at the sentence level with
+  valence shifters.
+- Corpus: *Dracula*, *Frankenstein*, *The Picture of Dorian Gray*, *The Turn of the Screw* and
+  *The Strange Case of Dr Jekyll and Mr Hyde*, from Project Gutenberg via `gutenbergr`.

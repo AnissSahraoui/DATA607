@@ -1,0 +1,496 @@
+---
+title: "Four Questions for the Nobel Prize API"
+subtitle: "Turning nested JSON into tidy data, and asking who the prize has moved toward"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    df-print: kable
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(httr2)
+library(jsonlite)
+library(knitr)
+
+snapshot <- "https://raw.githubusercontent.com/AnissSahraoui/DATA607/main/Week10B/data/"
+
+accent   <- "#2a78d6"
+accent_2 <- "#eb6834"
+theme_nb <- theme_minimal(base_size = 12) +
+  theme(panel.grid.minor = element_blank(), plot.title.position = "plot")
+```
+
+# The API
+
+The Nobel Prize Developer Zone publishes a public API that needs no key. I used the **laureates**
+endpoint, `https://api.nobelprize.org/2.1/laureates`, which returns one record per laureate with
+every prize that laureate has won nested inside it.
+
+```{r}
+#| label: live-call
+resp <- request("https://api.nobelprize.org/2.1/laureates") |>
+  req_url_query(limit = 1) |>
+  req_error(is_error = \(r) FALSE) |>
+  req_perform()
+
+parsed <- resp_body_json(resp)
+
+tibble(
+  status            = resp_status(resp),
+  laureates_in_api  = parsed$meta$count,
+  returned_this_call = length(parsed$laureates)
+)
+```
+
+## What one record looks like
+
+A laureate is not a row. It is a deeply nested object: names repeat in up to three languages, birth
+sits inside its own object with a place inside that, and prizes arrive as an array because some
+laureates have won more than once.
+
+```{r}
+#| label: structure
+one <- parsed$laureates[[1]]
+
+tibble(
+  field = c("knownName", "birth", "birth$place$country", "nobelPrizes", "affiliations"),
+  shape = c(
+    paste("object:", paste(names(one$knownName), collapse = ", ")),
+    paste("object:", paste(names(one$birth), collapse = ", ")),
+    paste("object:", paste(names(one$birth$place$country), collapse = ", ")),
+    paste("array of", length(one$nobelPrizes), "prize object(s)"),
+    paste("array inside each prize, with name / city / country objects")
+  )
+)
+```
+
+Three further wrinkles shape every decision below: **organizations** such as the Red Cross appear
+alongside people but carry `orgName` and `founded` instead of `knownName` and `birth`, with no
+gender; **results are paginated**, 100 at a time; and some birth dates record only a year, written
+as `1948-00-00`.
+
+# Retrieving and Tidying the Data
+
+The collection script pages through the whole list, flattens each record, and writes two tidy
+tables. The key part is the flattening:
+
+```{r}
+#| label: flatten-code
+#| eval: false
+# English label from a multi-language field, e.g. {en: "USA", se: "USA"}
+en <- function(x) if (is.null(x)) NA_character_ else (x[["en"]] %||% NA_character_)
+
+# First non-missing value. en() returns NA (not NULL) for an absent field and
+# %||% only catches NULL, so organizations need a fallback that treats NA as
+# "try the next one" — otherwise every organization loses its name.
+first_present <- function(...) {
+  vals <- c(...)
+  vals <- vals[!is.na(vals)]
+  if (length(vals)) vals[[1]] else NA_character_
+}
+
+laureates <- map_dfr(laureates_raw, \(l) tibble(
+  laureate_id     = l$id,
+  name            = first_present(en(l$knownName), en(l$orgName)),
+  is_organization = !is.null(l$orgName),
+  gender          = l$gender %||% NA_character_,
+  birth_date      = first_present(l$birth$date %||% NA_character_,
+                                  l$founded$date %||% NA_character_),
+  birth_country_now = first_present(en(l$birth$place$countryNow),
+                                    en(l$founded$place$countryNow)),
+  n_prizes        = length(l$nobelPrizes)
+))
+
+# One row per laureate per prize: a two-time winner becomes two rows.
+prizes <- map_dfr(laureates_raw, \(l) {
+  map_dfr(l$nobelPrizes, \(p) {
+    aff <- if (length(p$affiliations)) p$affiliations[[1]] else NULL
+    tibble(
+      laureate_id             = l$id,
+      award_year              = as.integer(p$awardYear),
+      category                = en(p$category),
+      prize_status            = p$prizeStatus %||% NA_character_,
+      affiliation_country_now = if (is.null(aff)) NA_character_ else en(aff$countryNow)
+    )
+  })
+})
+```
+
+The full script is
+[`fetch_nobel.R`](https://github.com/AnissSahraoui/DATA607/blob/main/Week10B/fetch_nobel.R). Its
+output is saved to CSV so this report renders from a fixed snapshot rather than a live call.
+
+```{r}
+#| label: load
+laureates <- read_csv(paste0(snapshot, "nobel_laureates.csv"),
+                      col_types = cols(.default = "c")) |>
+  mutate(is_organization = as.logical(is_organization),
+         n_prizes        = as.integer(n_prizes),
+         # Year only: 48 birth dates are recorded as e.g. 1948-00-00, so the
+         # year is reliable but the exact date is not.
+         birth_year      = as.integer(str_sub(birth_date, 1, 4)))
+
+prizes <- read_csv(paste0(snapshot, "nobel_prizes.csv"),
+                   col_types = cols(.default = "c")) |>
+  mutate(award_year = as.integer(award_year))
+
+# One row per laureate-prize, with the laureate's own details attached.
+awards <- prizes |>
+  left_join(
+    laureates |> select(laureate_id, is_organization, gender, birth_year,
+                        birth_country, birth_country_now),
+    by = "laureate_id"
+  )
+
+tibble(
+  laureate_records   = nrow(laureates),
+  laureate_prize_rows = nrow(awards),
+  repeat_winners     = sum(laureates$n_prizes > 1),
+  organizations      = sum(laureates$is_organization),
+  years_covered      = paste(min(awards$award_year), "-", max(awards$award_year))
+)
+```
+
+Seven laureates have won more than once, producing the eight extra prize rows:
+
+```{r}
+#| label: repeats
+laureates |>
+  filter(n_prizes > 1) |>
+  select(name, is_organization, n_prizes) |>
+  arrange(desc(n_prizes))
+```
+
+## Cleaning decisions
+
+```{r}
+#| label: missing
+bind_rows(
+  laureates |> summarise(across(everything(), ~ sum(is.na(.)))) |>
+    pivot_longer(everything(), names_to = "column", values_to = "missing") |>
+    mutate(table = "laureates"),
+  prizes |> summarise(across(everything(), ~ sum(is.na(.)))) |>
+    pivot_longer(everything(), names_to = "column", values_to = "missing") |>
+    mutate(table = "prizes")
+) |>
+  filter(missing > 0) |>
+  select(table, column, missing)
+```
+
+Each gap is kept rather than patched, with a reason:
+
+- **`gender` is missing for all `r sum(laureates$is_organization)` organizations.** They are
+  excluded from the gender question rather than counted as unknown.
+- **`affiliation_country` is missing for `r sum(is.na(prizes$affiliation_country_now))` prizes.**
+  Peace and Literature laureates usually have no institutional affiliation. These are excluded from
+  Question 4, which needs both countries, and the report states how many rows that leaves.
+- **`death_date` is missing for `r sum(is.na(laureates$death_date))` laureates**, who are living.
+  That is information, not absence.
+- **Country names are taken from `countryNow`** rather than `country`. The raw field records the
+  country as it was named at the time, so Marie Curie's birthplace is "Russian Empire" while
+  `countryNow` says "Poland". Using present-day names makes countries comparable across 125 years.
+
+```{r}
+#| label: status
+prizes |> count(prize_status)
+```
+
+Two prizes were declined and one is restricted. They stay in the counts, because the prize was
+still awarded.
+
+# Question 1: How has the number of laureates changed over time?
+
+**The question.** The prize has grown from a handful of awards a year to a crowded field. Counting
+by decade and category shows when that happened.
+
+```{r}
+#| label: q1-table
+by_decade <- awards |>
+  mutate(decade = 10 * (award_year %/% 10)) |>
+  count(decade, category)
+
+by_decade |>
+  group_by(decade) |>
+  summarise(laureates = sum(n), .groups = "drop") |>
+  kable(col.names = c("Decade", "Laureates"))
+```
+
+```{r}
+#| label: fig-q1
+#| fig-cap: "Laureates per decade by category. The 2020s are incomplete, covering 2020 to 2026."
+#| fig-height: 3.8
+by_decade |>
+  mutate(category = fct_reorder(category, n, sum, .desc = TRUE)) |>
+  ggplot(aes(x = decade, y = n, fill = category)) +
+  geom_col(width = 8) +
+  scale_fill_brewer(palette = "Set2", name = NULL) +
+  labs(title = "Laureates per decade, by category",
+       x = NULL, y = "Laureates") +
+  theme_nb +
+  theme(legend.position = "right")
+```
+
+**The answer.** Numbers roughly doubled: the 1900s produced 57 laureates and the 2000s produced 123.
+The cause is sharing rather than more prizes — a single prize is now routinely split between two or
+three people, where early prizes usually went to one. Economic Sciences only begins in 1969, which
+is visible as the category appearing part-way along.
+
+# Question 2: How has the share of women changed?
+
+**The question.** Women are a small minority of laureates. Is that changing, and does it differ by
+category?
+
+```{r}
+#| label: q2-people
+people <- awards |> filter(!is_organization)
+
+people |>
+  count(gender) |>
+  mutate(pct = round(100 * n / sum(n), 1)) |>
+  kable(col.names = c("Gender", "Prizes", "%"))
+```
+
+```{r}
+#| label: q2-category
+people |>
+  group_by(category) |>
+  summarise(
+    prizes      = n(),
+    women       = sum(gender == "female"),
+    pct_women   = round(100 * sum(gender == "female") / n(), 1),
+    .groups = "drop"
+  ) |>
+  arrange(desc(pct_women)) |>
+  kable(col.names = c("Category", "Prizes", "Women", "% women"))
+```
+
+```{r}
+#| label: fig-q2
+#| fig-cap: "Share of prizes to women by decade. Organizations are excluded, since they have no gender."
+#| fig-height: 3.4
+people |>
+  mutate(decade = 10 * (award_year %/% 10)) |>
+  group_by(decade) |>
+  summarise(pct_women = 100 * sum(gender == "female") / n(), .groups = "drop") |>
+  ggplot(aes(x = decade, y = pct_women)) +
+  geom_col(fill = accent, width = 8) +
+  geom_text(aes(label = sprintf("%.0f%%", pct_women)), vjust = -0.4, size = 3.2) +
+  scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+  labs(title = "The share of women has risen, from a very low base",
+       x = NULL, y = "% of prizes to women") +
+  theme_nb
+```
+
+**The answer.** The share has risen from 5.4% in the 1900s to 19.5% in the 2020s, with the 1950s
+recording none at all. The gap between categories is wider than the change over time: Peace sits at
+18.6% and Literature at 15.4%, while Physics is at 2.2% — five women in 231 prizes.
+
+# Question 3: How old are laureates when they win?
+
+**The question.** The prize is often awarded long after the work it recognises. Age at the time of
+the award makes that lag visible, and shows whether it is growing.
+
+```{r}
+#| label: q3-age
+ages <- people |>
+  filter(!is.na(birth_year)) |>
+  mutate(age = award_year - birth_year)
+
+tibble(
+  prizes_with_age = nrow(ages),
+  mean_age        = round(mean(ages$age), 1),
+  median_age      = median(ages$age),
+  youngest        = min(ages$age),
+  oldest          = max(ages$age)
+)
+```
+
+Age here is **award year minus birth year**, not an exact age in years. That is a deliberate
+simplification: 48 birth dates record only a year, so a precise calculation would silently drop
+them. The approximation is at most a year out.
+
+```{r}
+#| label: q3-category
+ages |>
+  group_by(category) |>
+  summarise(prizes = n(), mean_age = round(mean(age), 1), .groups = "drop") |>
+  arrange(mean_age) |>
+  kable(col.names = c("Category", "Prizes", "Mean age"))
+```
+
+```{r}
+#| label: fig-q3
+#| fig-cap: "Age at the time of the award. Each point is one prize; the line is a smoothed trend."
+#| fig-height: 3.6
+ggplot(ages, aes(x = award_year, y = age)) +
+  geom_point(alpha = 0.3, size = 1.4, color = accent) +
+  geom_smooth(method = "loess", se = FALSE, color = accent_2, linewidth = 1) +
+  labs(title = "Laureates are winning later in life",
+       x = "Award year", y = "Age at award") +
+  theme_nb
+```
+
+```{r}
+#| label: q3-extremes
+bind_rows(
+  ages |> slice_min(age, n = 3) |> mutate(group = "Youngest"),
+  ages |> slice_max(age, n = 3) |> mutate(group = "Oldest")
+) |>
+  select(group, name, category, award_year, age) |>
+  kable(col.names = c("", "Name", "Category", "Year", "Age"))
+```
+
+**The answer.** The mean is 60.6 and the median 61, but the trend is the real finding: laureates
+awarded before 1970 averaged 55.2, and those since average 64.0 — nearly nine years older.
+Economic Sciences has the oldest laureates at 67.2 and Physics the youngest at 57.8. The range runs
+from Malala Yousafzai at 17 to John B. Goodenough at 97.
+
+# Question 4: Which countries lost laureates, and which gained them?
+
+**The question.** This one needs two fields compared rather than counted. Each prize record holds
+the laureate's **country of birth** and the **country of the institution they were working at** when
+they won. Where those differ, a country educated someone whose prize was credited elsewhere.
+
+```{r}
+#| label: q4-prepare
+movers <- awards |>
+  filter(
+    !is_organization,                      # organizations have no birthplace
+    !is.na(birth_country_now),             # both countries must be known
+    !is.na(affiliation_country_now)
+  ) |>
+  mutate(moved = birth_country_now != affiliation_country_now)
+
+tibble(
+  all_prize_rows      = nrow(awards),
+  organizations       = sum(awards$is_organization),
+  no_affiliation      = sum(is.na(awards$affiliation_country_now)),
+  usable_for_question = nrow(movers),
+  moved               = sum(movers$moved),
+  pct_moved           = round(100 * mean(movers$moved), 1)
+)
+```
+
+Only `r nrow(movers)` of `r nrow(awards)` prize rows can answer this, because Peace and Literature
+laureates usually have no listed institution. The result describes the laureates who worked at
+universities and laboratories, which is most of the science prizes.
+
+```{r}
+#| label: q4-net
+lost   <- movers |> filter(moved) |> count(country = birth_country_now,       name = "lost")
+gained <- movers |> filter(moved) |> count(country = affiliation_country_now, name = "gained")
+
+net_flow <- full_join(lost, gained, by = "country") |>
+  replace_na(list(lost = 0, gained = 0)) |>
+  mutate(net = gained - lost)
+
+bind_rows(
+  net_flow |> slice_max(net, n = 5) |> mutate(group = "Biggest net gainers"),
+  net_flow |> slice_min(net, n = 5) |> mutate(group = "Biggest net losers")
+) |>
+  select(group, country, lost, gained, net) |>
+  kable(col.names = c("", "Country", "Laureates lost", "Laureates gained", "Net"))
+```
+
+```{r}
+#| label: fig-q4
+#| fig-cap: "Net movement of laureates: born in one country, awarded while working in another."
+#| fig-height: 4
+net_flow |>
+  filter(abs(net) >= 4) |>
+  mutate(country = fct_reorder(country, net),
+         direction = if_else(net > 0, "Net gain", "Net loss")) |>
+  ggplot(aes(x = net, y = country, fill = direction)) +
+  geom_col(width = 0.65) +
+  geom_text(aes(label = net), hjust = ifelse(net_flow |> filter(abs(net) >= 4) |> pull(net) > 0, -0.3, 1.3),
+            size = 3.2) +
+  scale_fill_manual(values = c("Net gain" = accent, "Net loss" = accent_2), name = NULL) +
+  scale_x_continuous(expand = expansion(mult = 0.12)) +
+  labs(title = "One country gains; everyone else loses",
+       x = "Laureates gained minus laureates lost", y = NULL) +
+  theme_nb +
+  theme(legend.position = "top", panel.grid.major.y = element_blank())
+```
+
+```{r}
+#| label: q4-flows
+movers |>
+  filter(moved) |>
+  count(birth_country_now, affiliation_country_now, sort = TRUE) |>
+  head(8) |>
+  kable(col.names = c("Born in", "Awarded while working in", "Laureates"))
+```
+
+```{r}
+#| label: q4-us
+movers |>
+  summarise(
+    born_in_usa      = sum(birth_country_now == "USA"),
+    affiliated_usa   = sum(affiliation_country_now == "USA"),
+    prizes           = n()
+  ) |>
+  mutate(pct_born = round(100 * born_in_usa / prizes, 1),
+         pct_affiliated = round(100 * affiliated_usa / prizes, 1)) |>
+  kable(col.names = c("Born in USA", "Working in USA", "Prizes", "% born", "% working"))
+```
+
+**The answer.** Just under a third of these prizes, `r round(100 * mean(movers$moved), 1)`%, went to
+someone working outside their country of birth, and the flow is overwhelmingly in one direction.
+**The United States has a net gain of 130 laureates**, losing only 4 while gaining 134. No other
+country comes close: the United Kingdom is next at +11, and Switzerland at +9.
+
+The largest losers are Poland (−19), then Canada, Scotland, Austria, Hungary, Russia and the
+Netherlands. The single biggest flow is United Kingdom to USA, 19 laureates, followed by Canada to
+USA at 15 and Germany to USA at 11.
+
+The clearest way to see it: **35.7% of these laureates were born in the United States, but 52.8%
+were working there when they won.**
+
+```{r}
+#| label: q4-era
+movers |>
+  mutate(decade = 10 * (award_year %/% 10)) |>
+  group_by(decade) |>
+  summarise(prizes = n(), n_moved = sum(moved),
+            pct_moved = round(100 * sum(moved) / n(), 1), .groups = "drop") |>
+  kable(col.names = c("Decade", "Prizes", "Moved", "% moved"))
+```
+
+Interestingly, the share who moved has **not** risen much: it was 42% in the 1900s and 36% in the
+2020s, hovering around a third throughout. What changed is the destination. The early movements were
+largely within Europe — Poland to Germany is the fourth-largest flow in the whole dataset — while
+the modern ones nearly all end in the United States.
+
+# Conclusions
+
+- **The prize has roughly doubled in size**, from 57 laureates in the 1900s to 123 in the 2000s,
+  mostly because prizes are now shared between two or three people.
+- **Women have gone from 5.4% of laureates to 19.5%**, but the category gap is larger than the
+  change over time: Peace is at 18.6% and Physics at 2.2%.
+- **Laureates are winning almost nine years later in life** than before 1970, 64.0 against 55.2,
+  which suggests a lengthening gap between the work and its recognition.
+- **The United States has gained 130 laureates it did not produce**, while Poland has lost 19. A
+  third of scientific laureates were working outside their country of birth when they won, and that
+  share has been roughly constant for a century — only the destination has changed.
+
+**What the data cannot say.** Question 4 rests on 761 of 1,036 prize rows, because Peace and
+Literature laureates rarely list an institution, so it is really a finding about the sciences. The
+affiliation is also only the one recorded at the time of the award: a laureate who was born in
+Germany, trained in the UK and won in the USA appears here simply as Germany to USA.
+
+# Source
+
+Nobel Prize API v2.1, laureates endpoint, <https://api.nobelprize.org/2.1/laureates>. Data from
+nobelprize.org, used under the
+[Nobel Prize API terms of use](https://www.nobelprize.org/about/terms-of-use-for-api-nobelprize-org-and-data-nobelprize-org/).

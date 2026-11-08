@@ -60,3 +60,4 @@ Home Win / Draw / Away Win.
 - [Week 7: Working with HTML and JSON in R](Week7/)
 - [Week 9: Using a New York Times API in R](Week9/)
 - [Week 10A: Sentiment Analysis](Week10A/)
+- [Week 10B: Nobel Prize API](Week10B/)

@@ -53,3 +53,8 @@ Requires R with `tidyverse`, `httr2` and `jsonlite`, and Quarto.
 Rscript fetch_nobel.R     # optional: refresh the snapshot
 quarto render nobel_api.qmd
 ```
+
+## Links
+
+- RPubs: https://rpubs.com/benadam0/nobel-prize-api
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week10B

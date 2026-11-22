@@ -1,0 +1,340 @@
+---
+title: "Analyzing a Commercial Recommender: Amazon.com"
+subtitle: "Scenario design for the company and its customers, reverse engineering, and recommendations"
+author: "Aniss Sahraoui"
+date: today
+format:
+  html:
+    toc: true
+    number-sections: true
+    theme: flatly
+    embed-resources: true
+execute:
+  echo: true
+  warning: false
+  message: false
+---
+
+# Why Amazon
+
+Amazon is the textbook commercial recommender. Its item-to-item collaborative filtering paper
+(Linden, Smith and York, 2003) is one of the most cited industry papers in the field and was later
+given a "test of time" award. It is also a system almost everyone has used, so its behaviour can be
+checked against everyday experience.
+
+Recommendations are not one feature on Amazon. They are most of the page. A typical product page,
+home page, cart and order-confirmation page are built largely out of recommendation rows, and the
+same engine drives Amazon's marketing emails. That makes Amazon a good case for the main question of
+this assignment: **whose goals is a recommender actually serving?**
+
+# Scenario design, done twice
+
+Scenario design (Temkin, 2004) asks three questions: *who are the target users, what are their key
+goals, and how can the site help them accomplish those goals?*
+
+For Amazon it makes sense to answer them twice, once for **Amazon the organization** and once for
+**Amazon's customers**. Most of the time the two sets of answers agree, because a recommendation
+the customer wants is also a sale. Where they disagree is where the most interesting design
+problems are (section 4), so keeping them separate is the point of the exercise.
+
+## For the organization
+
+| Question | Answer |
+|---|---|
+| **Who are the target users?** | Amazon's retail business, its advertising business, and the third-party sellers who list and advertise on the marketplace. Advertising is now a large business in its own right, so "the organization" has more than one goal. |
+| **What are their key goals?** | Raise conversion and basket size (sell the charger with the phone). Increase visit frequency and repeat purchases (Prime, replenishment). Surface the long tail of a catalog far too large to browse. Sell advertising placements to sellers and brands. Keep customers inside Amazon's ecosystem rather than comparison shopping elsewhere. |
+| **How can the recommender help?** | Fill every page slot with the items most likely to be bought next. Respond instantly to new activity within a session. Scale to hundreds of millions of customers and items with sub-second latency. Blend paid placements into recommendation rows. Reach customers outside the site through email and notifications. |
+
+## For the customers
+
+| Question | Answer |
+|---|---|
+| **Who are the target users?** | Shoppers ranging from someone who knows exactly what they want, to someone researching a category, to someone browsing or buying a gift. Many accounts are shared by a household, so one account can represent several people. |
+| **What are their key goals?** | Find the right product quickly and with confidence. Discover useful things they did not know to search for, especially complements ("you will need batteries"). Reorder routine items with little effort. Avoid wasting money on low-quality products, and avoid being sold to aggressively. |
+| **How can the recommender help?** | Show genuinely related and complementary items. Remember recurring purchases and when they run out. Use reviews and ratings so suggestions are trustworthy. Stop recommending things the customer has already bought or has shown no interest in. Make it clear why something is being recommended and whether it is an advertisement. |
+
+## A third party worth naming
+
+Third-party sellers are both customers *of* Amazon (they pay for ads and fulfilment) and suppliers
+*to* Amazon's shoppers. Their goal, visibility, is served through sponsored placements. I fold them
+into the organizational scenario above because their visibility is something Amazon sells, but they
+are the reason the two scenarios can pull apart.
+
+# Reverse engineering the system
+
+Amazon does not publish its current architecture, so this section combines three sources: what the
+interface shows, what Amazon's own engineers have published, and a small worked example of the
+published method.
+
+## What the interface reveals
+
+Each recommendation row on Amazon carries a label, and the label is a strong hint about the signal
+behind it.
+
+| Where it appears | Typical label | Signal it implies | Likely method |
+|---|---|---|---|
+| Product page | "Frequently bought together" | Items purchased in the same order | Item-to-item co-purchase within a basket, usually with a bundle price |
+| Product page | "Customers who viewed this item also viewed" | Browsing sessions, not purchases | Item-to-item co-view; mostly **substitutes** (other versions of the same product) |
+| Product page | "Customers who bought this item also bought" | Purchases across orders | Item-to-item co-purchase; mostly **complements** |
+| Product page | "Products related to this item", marked *Sponsored* | Advertiser bids plus relevance | Ad auction, ranked by bid and predicted relevance |
+| Home page | "Inspired by your browsing history", "Keep shopping for" | The customer's recent views | Item-to-item lookups seeded by recent history, weighted toward recency |
+| Home page | "Buy it again" | The customer's own past orders | Purchase-cycle model for consumables |
+| Cart / after "Add to Cart" | Add-on suggestions | The items in the cart | Item-to-item on the cart contents (the "impulse items" in figure 2 of the 2003 paper) |
+| Search results | "Amazon's Choice", "Overall Pick" badges | Ratings, price, delivery speed, return rates | A ranking signal separate from the recommender, but it shapes what gets clicked |
+| Account settings | "Improve your recommendations", "Don't use for recommendations" | Explicit negative feedback | Customers can remove items from their own profile |
+| App and desktop | Conversational assistant (Rufus, renamed *Alexa for Shopping* in May 2026) | A typed question plus catalog, reviews and Q&A | Large language model on top of retrieval and the existing recommenders |
+
+Three things stand out from the interface alone:
+
+1. **The basic unit is the item, not the user.** Almost every row is "because of *this* item".
+   That matches item-to-item collaborative filtering exactly: personalisation comes from *which*
+   items are used as seeds (your views, your cart, your orders), not from comparing you to similar
+   people.
+2. **Different rows use different events.** "Viewed" and "bought" are separated, which suggests
+   separate similarity tables for views (substitutes) and purchases (complements). That is a
+   sensible design: when you are comparing headphones you want other headphones; once you have
+   bought them you want a case, not more headphones.
+3. **Sponsored and organic rows sit side by side** and look almost the same apart from a small
+   "Sponsored" label. The recommender and the ad system share the same real estate.
+
+## What Amazon has published
+
+**2003: item-to-item collaborative filtering.** Linden, Smith and York explain why the user-based
+approaches of the time did not scale to Amazon's then 29 million customers. Comparing each user
+with every other user is roughly O(M + N) per request and degrades badly at scale, and clustering
+and search-based methods gave poorer recommendations. Their alternative builds a **similar-items
+table offline**: for each item, find the items that the same customers also bought, and score each
+pair with cosine similarity. At request time the system only looks up the neighbours of the handful
+of items the customer has interacted with, so the online cost depends on the size of the
+customer's history, not on the size of the catalog or the customer base. The paper also stresses
+that the system works for new customers with only two or three items, and that customer data is
+volatile, so the system must react immediately to a new click or purchase.
+
+The contrast with news is instructive. The New York Times found that collaborative filtering fails
+on articles published minutes ago, which no one has read yet, so it moved to a hybrid that models
+each article's text (Spangher, 2015). A product on Amazon stays in the catalog for months or years
+and keeps accumulating co-purchase data, which is why a purely behavioural, item-to-item approach
+works so well there. Brand-new products face the same cold-start problem as fresh news, though,
+which is one reason sponsored placements, which do not need purchase history, are a natural fit for
+new listings.
+
+**2017: what changed in the following two decades.** In a retrospective, Smith and Linden describe
+how the basic idea was refined. The most important change is *how relatedness is measured*. Two
+items are related if customers who bought X are **unusually** likely to also buy Y, which means
+comparing the observed number of shared customers, N(X,Y), with the number you would expect by
+chance, E(X,Y). Their key observation is that a naive expectation is biased by **heavy buyers**:
+anyone who buys X is more likely than average to be a heavy buyer and so to have bought almost
+anything. The expectation therefore has to account for how much each X buyer buys. They then score
+pairs with a chi-square-style statistic, (N − E) / √E, because the raw difference favours
+bestsellers and the percentage difference favours obscure items. The retrospective also describes
+extensions that are visible on the site today: weighting recent behaviour more, respecting the
+**order** of purchases (a lens after a camera, not a camera after a lens), recognising that some
+purchases (a book) say much more about a person's interests than others (a phone charger), and using
+clicks on recommendations as feedback to tune the system. It ends by imagining shopping that is
+"as easy as a conversation", which the conversational assistant now attempts.
+
+**2024–2026: a conversational layer.** Amazon launched Rufus in early 2024, describing it as a
+shopping assistant trained on the product catalog, customer reviews, community Q&As and information
+from across the web, which can "make recommendations based on conversational context". Amazon
+renamed it *Alexa for Shopping* on 13 May 2026. It lets a customer state a goal ("what do I need
+for cold weather golf?") rather than a product, which is a different entry point into the same
+catalog.
+
+## A worked example of the published scoring
+
+The difference between counting co-purchases and scoring them against an expectation is easy to
+see on a toy dataset. Thirteen invented customers each bought a few items. One item, a bestselling
+novel, was bought by almost everyone. The question is which items to show on the **R book**'s
+product page.
+
+```{r}
+#| label: setup
+library(tidyverse)
+library(knitr)
+```
+
+```{r}
+#| label: toy-data
+purchases <- tribble(
+  ~customer, ~items,
+  "c01", "R book; Statistics book; Bestseller novel",
+  "c02", "R book; Statistics book; Bestseller novel",
+  "c03", "R book; Statistics book; Data viz book",
+  "c04", "R book; Bestseller novel; Data viz book",
+  "c05", "R book; Data viz book; Bestseller novel",
+  "c06", "Bestseller novel; Cookbook",
+  "c07", "Bestseller novel; Cookbook; Phone charger",
+  "c08", "Bestseller novel; Phone charger",
+  "c09", "Bestseller novel",
+  "c10", "Bestseller novel; Cookbook",
+  "c11", "Statistics book; Data viz book",
+  "c12", "Bestseller novel; Phone charger; Cookbook; R book; Statistics book; Data viz book",
+  "c13", "Bestseller novel; Phone charger; Cookbook; Data viz book"
+) |>
+  separate_longer_delim(items, "; ") |>
+  rename(item = items)
+
+purchases |>
+  count(item, name = "customers") |>
+  arrange(desc(customers)) |>
+  kable()
+```
+
+**Step 1: count co-purchases.** This is the simplest version of "customers who bought this also
+bought".
+
+```{r}
+#| label: co-counts
+seed_item <- "R book"
+
+seed_buyers <- purchases |>
+  filter(item == seed_item) |>
+  distinct(customer)
+
+co_counts <- purchases |>
+  semi_join(seed_buyers, by = "customer") |>
+  filter(item != seed_item) |>
+  count(item, name = "bought_together") |>
+  arrange(desc(bought_together))
+
+kable(co_counts)
+```
+
+The bestselling novel comes out on top, but only because nearly everyone bought it. Recommending
+it on the R book's page tells the customer nothing about the R book.
+
+**Step 2: compare with what chance would produce.** Following the 2017 article, the expected count
+accounts for how much each R-book buyer buys. If item Y makes up a share *p* of all purchases, a
+customer who bought *n* other items would buy Y at least once by chance with probability
+1 − (1 − *p*)^*n*. Summing that over the R-book buyers gives E, and pairs are scored with
+(N − E) / √E.
+
+```{r}
+#| label: expected-score
+n_purchases <- nrow(purchases)
+
+item_share <- purchases |>
+  count(item, name = "n") |>
+  mutate(p = n / n_purchases)
+
+# Number of other items each R-book buyer bought
+seed_baskets <- purchases |>
+  semi_join(seed_buyers, by = "customer") |>
+  count(customer, name = "basket_size") |>
+  mutate(other_items = basket_size - 1)
+
+scored <- item_share |>
+  filter(item != seed_item) |>
+  mutate(expected = map_dbl(p, \(p) sum(1 - (1 - p)^seed_baskets$other_items))) |>
+  left_join(co_counts, by = "item") |>
+  mutate(bought_together = replace_na(bought_together, 0),
+         score = (bought_together - expected) / sqrt(expected)) |>
+  arrange(desc(score))
+
+scored |>
+  transmute(item, bought_together, expected = round(expected, 2), score = round(score, 2)) |>
+  kable()
+```
+
+Ranked by score, the statistics and data visualisation books rise to the top. The bestseller drops
+to third: it was bought by 5 of the 6 R-book buyers, but chance alone predicts more than 3, so the
+association is weak. The phone charger and cookbook score below zero, meaning R-book buyers
+bought them *less* often than chance would predict. This is the reasoning behind Amazon's change
+from raw co-occurrence to an expectation-adjusted score. It is a toy dataset, but the effect it
+shows, popular items crowding out genuinely related ones, is the problem the 2017 article
+describes.
+
+## Putting it together
+
+From the interface, the published work and the example, a plausible picture of the system is:
+
+1. **Offline:** build several item-to-item tables (co-view, co-purchase, same-basket), each scored
+   against an expectation rather than raw counts, with recency and purchase-order adjustments.
+2. **Online, per page slot:** take seed items from the current context (the product being viewed,
+   the cart, recent history, past orders), look up their neighbours, and merge and rank the
+   candidates. Remove items already owned where appropriate.
+3. **Blend in paid placements** from a separate ad auction, ranked by bid and predicted relevance,
+   labelled "Sponsored".
+4. **Learn from feedback:** clicks and purchases on recommendations, explicit "don't use for
+   recommendations" choices, and A/B tests of which rows to show where.
+5. **On top:** a conversational assistant that turns a stated goal into product suggestions.
+
+# Where the two scenarios conflict
+
+The two scenario designs mostly agree, but there are clear points where they pull apart.
+
+**Sponsored placements.** For the organization, every sponsored slot is revenue. For the customer,
+a sponsored product is only useful if it is as relevant as the organic result it displaced. In its
+2023 antitrust complaint against Amazon, the US Federal Trade Commission alleged that Amazon
+increased the number of ads shown, including irrelevant ones that it internally called "defects",
+and pushed organic results further down the page. Amazon disputes these claims, and they are
+allegations rather than findings. Whatever the outcome, the complaint describes exactly the
+conflict that the two-sided scenario design predicts: a slot can be optimised for the
+organization's revenue or for the customer's goal, and the two are not always the same.
+
+**Recommending what was just bought.** A common customer complaint is being shown more of a product
+already purchased, such as more vacuum cleaners the week after buying one. From an item-to-item
+perspective it is a sensible inference (you showed strong interest in vacuums). From the customer's
+perspective it is useless for a durable good, though it would be right for a consumable.
+
+**Shared accounts and gifts.** A gift for a child or a purchase for a partner is recorded as the
+account holder's interest. The organization sees more data; the customer sees recommendations that
+no longer describe them.
+
+**Engagement versus satisfaction.** A recommender trained on clicks and purchases can learn to
+favour items that are bought often but also returned often. The organization counts the sale;
+the customer counts the return.
+
+# Recommendations for improvement
+
+1. **Model the purchase cycle explicitly.** Classify items as durable (a vacuum), consumable
+   (vacuum bags) or one-off (a gift). After a durable purchase, suppress substitutes and promote
+   complements. For consumables, time "Buy it again" to the customer's own replenishment interval.
+   Amazon already knows the ingredients: the 2017 article describes using purchase order and time,
+   and "Buy it again" shows it can model repurchase.
+2. **Hold sponsored items to the same relevance standard as organic ones.** Measure ad relevance
+   with the same metric used for organic recommendations, cap the share of sponsored items in each
+   row, and keep ads out of the rows whose labels claim to describe customer behaviour, such as
+   "Customers who bought this item also bought". Customers who trust the rows will click on them
+   more, which serves both scenarios over the long term.
+3. **Make explanations visible again.** The 2003 "Your Recommendations" page had a "Why was I
+   recommended this?" link next to each item. Bringing back a one-line reason ("Because you bought
+   *The Pragmatic Programmer*") with a one-click "Not interested" or "This was a gift" control
+   would give the system cleaner feedback and give the customer a sense of control.
+4. **Support households and gifts.** Ask "Is this a gift?" at checkout, which Amazon already does
+   for gift wrapping, and exclude those purchases from the buyer's profile. Optionally allow
+   profiles within an account, the way streaming services do.
+5. **Optimise for satisfaction, not only for conversion.** Treat returns, low ratings and
+   "not interested" clicks as negative signals, and evaluate recommendation changes on longer-term
+   outcomes such as return rate and repeat purchase, not just immediate click-through.
+6. **Keep the conversational assistant grounded and transparent.** Its answers should cite the
+   reviews or specifications they rely on, clearly mark any sponsored product, and let customers
+   save constraints ("I'm vegetarian", "budget under $50") that then carry over to the ordinary
+   recommendation rows.
+
+# Conclusion
+
+Amazon's recommender started as an engineering answer to a scaling problem: compare items, not
+people, and do the expensive work offline. That idea is still visible in nearly every row of the
+site, and the 2017 refinements show how much of the quality comes from measuring "related"
+carefully rather than counting co-purchases. Doing the scenario design twice shows that the hard
+problems today are less about algorithms and more about **whose goal a given slot serves**. The
+improvements above mostly align the two: recommendations a customer trusts are also
+recommendations a customer clicks.
+
+# References
+
+- Linden, G., Smith, B. and York, J. (2003). Amazon.com Recommendations: Item-to-Item Collaborative
+  Filtering. *IEEE Internet Computing*, 7(1), 76–80.
+  <https://datajobs.com/data-science-repo/Recommender-Systems-[Amazon].pdf>
+- Smith, B. and Linden, G. (2017). Two Decades of Recommender Systems at Amazon.com. *IEEE Internet
+  Computing*, 21(3), 12–18. <https://ieeexplore.ieee.org/document/7927889>
+- Spangher, A. (2015). Building the Next New York Times Recommendation Engine. *The New York Times
+  Open Blog*.
+  <https://open.blogs.nytimes.com/2015/08/11/building-the-next-new-york-times-recommendation-engine/>
+- Amazon (2024, updated 2026). Amazon Rufus AI experience comes to the Amazon Shopping app.
+  <https://www.aboutamazon.com/news/retail/amazon-rufus>
+- Federal Trade Commission et al. v. Amazon.com, Inc. (2023). Redacted amended complaint.
+  <https://www.ftc.gov/system/files/ftc_gov/pdf/1910134amazonecommercecomplaintrevisedredactions.pdf>
+- Temkin, B. D. (2004). *Scenario Design: A Disciplined Approach to Customer Experience*. Forrester
+  Research.

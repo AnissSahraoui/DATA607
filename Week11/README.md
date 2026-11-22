@@ -67,3 +67,8 @@ quarto render aniss_s_lubridate_births.qmd
 ```bash
 quarto render amazon_recommender.qmd
 ```
+
+## Links
+
+- RPubs (Part 2): https://rpubs.com/benadam0/amazon-recommender
+- GitHub: https://github.com/AnissSahraoui/DATA607/tree/main/Week11
